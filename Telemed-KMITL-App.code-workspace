@@ -1,13 +1,13 @@
 {
 	"folders": [
 		{
-			"path": "projects/kmitl_telemedicine"
+			"path": "packages/kmitl_telemedicine"
 		},
 		{
-			"path": "projects/kmitl_telemedicine_patient"
+			"path": "packages/kmitl_telemedicine_patient"
 		},
 		{
-			"path": "projects/kmitl_telemedicine_staff"
+			"path": "packages/kmitl_telemedicine_staff"
 		}
 	],
 	"settings": {
