@@ -1,0 +1,4 @@
+include: package:flutter_lints/flutter.yaml
+linter:
+  rules:
+    avoid_web_libraries_in_flutter: false # INFO: This app is for web-only

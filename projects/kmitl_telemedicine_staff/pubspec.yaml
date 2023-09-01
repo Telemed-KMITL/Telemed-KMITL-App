@@ -1,0 +1,23 @@
+name: kmitl_telemedicine_staff
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  kmitl_telemedicine:
+    path: ../kmitl_telemedicine
+  cloud_firestore: ^4.9.0
+  firebase_core: ^2.15.1
+  dropdown_button2: ^2.3.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
