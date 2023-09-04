@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,8 @@ import 'package:kmitl_telemedicine_staff/providers.dart';
 
 class AccessDeniedPage extends ConsumerStatefulWidget {
   const AccessDeniedPage({super.key});
+
+  static const String path = "/access-denied";
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>

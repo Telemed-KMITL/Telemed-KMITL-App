@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kmitl_telemedicine_staff/pages/email_verification_page.dart';
 
 class SigninPage extends StatelessWidget {
   const SigninPage({Key? key}) : super(key: key);
+
+  static const String path = "/auth/signin";
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,7 @@ class SigninPage extends StatelessWidget {
               context.go("/");
               break;
             case firebase.User(emailVerified: false, email: final String _):
-              context.push("/auth/verify-email");
+              context.push(EmailVerificationPage.path);
               break;
           }
         }),

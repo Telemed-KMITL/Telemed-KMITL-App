@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine_staff/waiting_room_page.dart';
+import 'package:kmitl_telemedicine_staff/pages/waiting_room_page.dart';
 
 class RoomListPage extends StatefulWidget {
   const RoomListPage({Key? key}) : super(key: key);
+
+  static const String path = "/waitingRooms";
 
   @override
   State<RoomListPage> createState() => _RoomListPageState();
@@ -53,10 +56,6 @@ class _RoomListPageState extends State<RoomListPage> {
   }
 
   void _roomSelected(DocumentReference<WaitingRoom> roomRef) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (c) => WaitingRoomPage(roomRef: roomRef),
-      ),
-    );
+    context.go(RoomListPage.path, extra: roomRef);
   }
 }

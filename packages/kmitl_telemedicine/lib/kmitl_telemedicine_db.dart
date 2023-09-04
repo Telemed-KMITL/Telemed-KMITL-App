@@ -36,6 +36,9 @@ class KmitlTelemedicineDb {
             toFirestore: (value, _) => value.toJson(),
           );
 
+  static DocumentReference<WaitingRoom> getWaitingRoomRef(String roomId) =>
+      waitingRooms.doc(roomId);
+
   static Query<WaitingUser> getWaitingUsers(
     DocumentReference<WaitingRoom> room,
   ) =>

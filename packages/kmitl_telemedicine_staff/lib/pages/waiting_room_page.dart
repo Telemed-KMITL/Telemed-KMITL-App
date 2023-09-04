@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine/waiting_room.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:kmitl_telemedicine_staff/video_call_page.dart';
+import 'package:kmitl_telemedicine_staff/pages/video_call_page.dart';
 
 class WaitingRoomPage extends StatefulWidget {
   const WaitingRoomPage({
