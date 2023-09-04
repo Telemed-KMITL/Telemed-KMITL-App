@@ -11,20 +11,21 @@ class KmitlTelemedicineDb {
             toFirestore: (value, _) => value.toJson(),
           );
 
-  static DocumentReference<User> getUser(String userId) => users.doc(userId);
+  static DocumentReference<User> getUserRef(String userId) => users.doc(userId);
 
-  static Future<DocumentReference<User>> createUser(
+  static Future<void> createOrUpdateUser(
+    String userId,
     String name,
-    List<UserRole> role,
+    UserRole role,
   ) async {
-    var result = await _dbInstance.collection("users").add({
-      "name": name,
-      "role": role,
-      "createdAt": FieldValue.serverTimestamp(),
-    });
-    return result.withConverter(
-      fromFirestore: (snapshot, _) => User.fromJson(snapshot.data()!),
-      toFirestore: (value, _) => value.toJson(),
+    await _dbInstance.collection("users").doc(userId).set(
+      {
+        "name": name,
+        "role": role,
+        "createdAt": FieldValue.serverTimestamp(),
+        "updatedAt": FieldValue.serverTimestamp(),
+      },
+      SetOptions(mergeFields: ["createdAt"]),
     );
   }
 
@@ -59,7 +60,7 @@ class KmitlTelemedicineDb {
     final userDocument = await user.get();
 
     final response = await room.collection("waitingUsers").add({
-      "userName": userDocument.data()!.name,
+      "user": userDocument.data()!,
       "userId": user.id,
       "status": status,
       "jitsiRoomName": jitsiRoomName,

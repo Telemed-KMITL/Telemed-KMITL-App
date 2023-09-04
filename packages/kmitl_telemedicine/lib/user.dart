@@ -6,19 +6,15 @@ import 'date_time_converter.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
-enum UserRole {
-  patient,
-  staff,
-  nurse,
-  admin,
-}
+enum UserRole { patient, doctor, nurse, admin, unknown }
 
 @freezed
 class User with _$User {
   const factory User({
-    required String name,
-    required UserRole role,
-    // PatientData patientData,
+    required String firstName,
+    required String lastName,
+    @JsonKey(unknownEnumValue: UserRole.unknown) required UserRole role,
+    String? HN,
     @DateTimeConverter() required DateTime createdAt,
     @DateTimeConverter() DateTime? updatedAt,
   }) = _User;

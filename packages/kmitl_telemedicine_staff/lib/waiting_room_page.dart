@@ -117,7 +117,7 @@ class _WaitingRoomPageState extends State<WaitingRoomPage> {
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.baseline,
           child: Text(
-            waitingUser.userName,
+            "${waitingUser.user.firstName} ${waitingUser.user.lastName}",
             style: usernameStyle,
           ),
         ),
