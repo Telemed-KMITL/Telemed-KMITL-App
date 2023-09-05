@@ -1,9 +1,27 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 
 final firebaseAuthStateProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
+);
+
+final userProvider = StreamProvider.autoDispose.family(
+  (ref, String userId) => KmitlTelemedicineDb.getUserRef(userId).snapshots(),
+);
+
+final waitingRoomListProvider = StreamProvider.autoDispose(
+  (ref) => KmitlTelemedicineDb.waitingRooms.snapshots(),
+);
+
+final waitingRoomProvider = StreamProvider.autoDispose.family(
+  (ref, DocumentReference<WaitingRoom> roomRef) => roomRef.snapshots(),
+);
+
+final waitingUserListProvider = StreamProvider.autoDispose.family(
+  (ref, DocumentReference<WaitingRoom> roomRef) =>
+      KmitlTelemedicineDb.getWaitingUsers(roomRef).snapshots(),
 );
 
 final currentUserProvider = StreamProvider((ref) {
