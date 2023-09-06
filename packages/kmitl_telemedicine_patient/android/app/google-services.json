@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "309460142389",
+    "project_id": "kmitl-telemedicine-66950013",
+    "storage_bucket": "kmitl-telemedicine-66950013.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309460142389:android:aed74f3afa7f0aa2c2e47c",
+        "android_client_info": {
+          "package_name": "com.example.kmitl_telemedicine_patient"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "309460142389-7p36vjoagldga242b7a4kqvl9a262gb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAte1PDc7tVOxo1HBUp0e95Gz9hu-5OA-4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "309460142389-7p36vjoagldga242b7a4kqvl9a262gb0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "309460142389-8tv294f217s4nksu08hvcg6fp6vbds4k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "th.kmitl.telemedicine"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

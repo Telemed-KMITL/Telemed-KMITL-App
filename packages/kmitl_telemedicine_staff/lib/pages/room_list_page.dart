@@ -1,49 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine_staff/pages/waiting_room_page.dart';
+import 'package:kmitl_telemedicine_staff/providers.dart';
 
-class RoomListPage extends StatefulWidget {
-  const RoomListPage({Key? key}) : super(key: key);
+class RoomListPage extends ConsumerWidget {
+  const RoomListPage({super.key});
 
   static const String path = "/waitingRooms";
 
   @override
-  State<RoomListPage> createState() => _RoomListPageState();
-}
-
-class _RoomListPageState extends State<RoomListPage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final waitingRoomList = ref.watch(waitingRoomListProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text("TeleMed"),
         centerTitle: true,
       ),
-      body: StreamBuilder(
-          stream: KmitlTelemedicineDb.waitingRooms.snapshots(),
-          builder: _buildList),
+      body: waitingRoomList.when(
+        data: (data) => _buildList(context, data),
+        error: (error, stackTrace) => Center(
+          child: Text(error.toString()),
+        ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
     );
   }
 
-  Widget _buildList(_, AsyncSnapshot<QuerySnapshot<WaitingRoom>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (snapshot.hasError) {
-      return Center(child: Text('Error: ${snapshot.error}'));
-    }
-
-    final docs = snapshot.data!.docs;
+  Widget _buildList(BuildContext context, QuerySnapshot<WaitingRoom> snapshot) {
+    final docs = snapshot.docs;
     return ListView(
       children: docs.map((e) {
         final data = e.data();
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () => _roomSelected(e.reference),
+            onTap: () => context.go(RoomListPage.path, extra: e.reference),
             child: ListTile(
               title: Text(data.name),
               subtitle: Text("ID: ${e.id}"),
@@ -53,9 +48,5 @@ class _RoomListPageState extends State<RoomListPage> {
         );
       }).toList(),
     );
-  }
-
-  void _roomSelected(DocumentReference<WaitingRoom> roomRef) {
-    context.go(RoomListPage.path, extra: roomRef);
   }
 }

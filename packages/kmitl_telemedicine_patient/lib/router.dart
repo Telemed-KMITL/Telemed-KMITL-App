@@ -3,14 +3,12 @@ import "package:firebase_auth/firebase_auth.dart" as firebase;
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:kmitl_telemedicine/kmitl_telemedicine.dart";
 
-import "package:kmitl_telemedicine_staff/pages/access_denied_page.dart";
-import "package:kmitl_telemedicine_staff/pages/email_verification_page.dart";
-import "package:kmitl_telemedicine_staff/pages/room_list_page.dart";
-import "package:kmitl_telemedicine_staff/pages/signin_page.dart";
-import "package:kmitl_telemedicine_staff/pages/waiting_room_page.dart";
-import "package:kmitl_telemedicine_staff/providers.dart";
+import "package:kmitl_telemedicine_patient/pages/email_verification_page.dart";
+import "package:kmitl_telemedicine_patient/pages/home_page.dart";
+import "package:kmitl_telemedicine_patient/pages/registration_page.dart";
+import "package:kmitl_telemedicine_patient/pages/signin_page.dart";
+import "package:kmitl_telemedicine_patient/providers.dart";
 
 class RouteRefreshNotifier extends ChangeNotifier {
   void listener(_, __) => notifyListeners();
@@ -20,7 +18,6 @@ GlobalKey<NavigatorState> _navRootKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouteRefreshNotifier();
   ref.listen(firebaseAuthStateProvider, refreshNotifier.listener);
-  ref.listen(currentUserProvider, refreshNotifier.listener);
 
   return GoRouter(
     navigatorKey: _navRootKey,
@@ -28,8 +25,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final firebaseUser = ref.read(firebaseAuthStateProvider);
-      final userSnapshot =
-          ref.read(currentUserProvider).unwrapPrevious().valueOrNull;
 
       if (firebaseUser.isLoading) {
         return null;
@@ -42,25 +37,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       };
 
       final atRootPage = state.matchedLocation == "/";
-      final atAccessDeniedPage = state.matchedLocation == AccessDeniedPage.path;
       final onAuthRoute = state.matchedLocation.startsWith("/auth");
 
       if (!isFirebaseUserLoggedIn) {
         return onAuthRoute ? null : "/auth";
       }
 
-      if (userSnapshot != null) {
-        final data = userSnapshot.data();
-
-        if (data == null ||
-            ![UserRole.admin, UserRole.doctor, UserRole.nurse]
-                .contains(data.role)) {
-          return AccessDeniedPage.path;
-        }
-
-        if (atRootPage || atAccessDeniedPage || onAuthRoute) {
-          return RoomListPage.path;
-        }
+      if (atRootPage || onAuthRoute) {
+        return HomePage.path;
       }
 
       return null;
@@ -69,10 +53,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: "/",
         builder: (context, state) => Container(),
-      ),
-      GoRoute(
-        path: AccessDeniedPage.path,
-        builder: (context, state) => const AccessDeniedPage(),
       ),
       GoRoute(
         path: "/auth",
@@ -94,24 +74,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const EmailVerificationPage(),
       ),
       GoRoute(
-        path: RoomListPage.path,
-        redirect: (context, state) => switch (state.extra) {
-          final String id => "${RoomListPage.path}/$id",
-          final DocumentReference<WaitingRoom> roomRef =>
-            "${RoomListPage.path}/${roomRef.id}",
-          _ => null,
-        },
-        builder: (context, state) => const RoomListPage(),
-        routes: [
-          GoRoute(
-            path: ":roomId",
-            builder: (context, state) => WaitingRoomPage(
-              roomRef: KmitlTelemedicineDb.getWaitingRoomRef(
-                state.pathParameters["roomId"]!,
-              ),
-            ),
-          ),
-        ],
+        path: RegistrationPage.path,
+        builder: (context, state) => const RegistrationPage(),
+      ),
+      GoRoute(
+        path: HomePage.path,
+        builder: (context, state) => const HomePage(),
       ),
     ],
   );
