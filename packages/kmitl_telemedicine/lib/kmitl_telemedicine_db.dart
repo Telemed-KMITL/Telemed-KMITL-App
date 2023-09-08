@@ -3,7 +3,15 @@ import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 
 class KmitlTelemedicineDb {
   static FirebaseFirestore get _dbInstance => FirebaseFirestore.instance;
-  static FieldValue get _currentTime => FieldValue.serverTimestamp();
+  static Map<String, dynamic> get _currentTimestamp => {
+        "createdAt": FieldValue.serverTimestamp(),
+        "updatedAt": FieldValue.serverTimestamp(),
+      };
+  static DocumentReference<Map<String, dynamic>> _getPureReference<T>(
+          DocumentReference<T> ref) =>
+      ref.firestore.doc(ref.path);
+
+  // User
 
   static CollectionReference<User> get users =>
       _dbInstance.collection("users").withConverter(
@@ -13,21 +21,21 @@ class KmitlTelemedicineDb {
 
   static DocumentReference<User> getUserRef(String userId) => users.doc(userId);
 
-  static Future<void> createOrUpdateUser(
+  static Future<DocumentReference<User>> createOrUpdateUser(
     String userId,
-    String name,
-    UserRole role,
+    User user,
   ) async {
-    await _dbInstance.collection("users").doc(userId).set(
-      {
-        "name": name,
-        "role": role,
-        "createdAt": FieldValue.serverTimestamp(),
-        "updatedAt": FieldValue.serverTimestamp(),
-      },
-      SetOptions(mergeFields: ["createdAt"]),
-    );
+    final userRef = getUserRef(userId);
+    final pureUserRef = _getPureReference(userRef);
+    final json = {
+      ...user.toJson(),
+      ..._currentTimestamp,
+    };
+    await pureUserRef.set(json, SetOptions(mergeFields: ["createdAt"]));
+    return userRef;
   }
+
+  // WaitingRoom
 
   static CollectionReference<WaitingRoom> get waitingRooms =>
       _dbInstance.collection("waitingRooms").withConverter(
@@ -36,43 +44,81 @@ class KmitlTelemedicineDb {
             toFirestore: (value, _) => value.toJson(),
           );
 
-  static DocumentReference<WaitingRoom> getWaitingRoomRef(String roomId) =>
-      waitingRooms.doc(roomId);
+  static Future<DocumentReference<WaitingRoom>> createWaitingRoom(
+      WaitingRoom waitingRoom) async {
+    final ref = waitingRooms.doc();
+    await updateWaitingRoom(ref, waitingRoom);
+    return ref;
+  }
 
-  static Query<WaitingUser> getWaitingUsers(
-    DocumentReference<WaitingRoom> room,
+  static Future<void> updateWaitingRoom(
+      DocumentReference<WaitingRoom> roomRef, WaitingRoom waitingRoom) async {
+    final pureRoomRef = _getPureReference(roomRef);
+    final json = {
+      ...waitingRoom.toJson(),
+      ..._currentTimestamp,
+    };
+    await pureRoomRef.set(json, SetOptions(mergeFields: ["createdAt"]));
+  }
+
+  // WaitingUser
+
+  static CollectionReference<WaitingUser> getWaitingUsers(
+    DocumentReference<WaitingRoom> roomRef,
   ) =>
-      room
-          .collection("waitingUsers")
-          .orderBy(
-            "createdAt",
-            descending: true,
-          )
-          .withConverter(
+      roomRef.collection("waitingUsers").withConverter(
             fromFirestore: (snapshot, _) =>
                 WaitingUser.fromJson(snapshot.data()!),
             toFirestore: (value, _) => value.toJson(),
           );
 
-  static Future<DocumentReference<WaitingUser>> addWaitingUser(
-    DocumentReference<WaitingRoom> room,
-    DocumentReference<User> user,
-    WaitingUserStatus status,
-    String? jitsiRoomName,
+  static Query<WaitingUser> getSortedWaitingUsers(
+          DocumentReference<WaitingRoom> roomRef) =>
+      getWaitingUsers(roomRef).orderBy(
+        "updatedAt",
+        descending: true,
+      );
+
+  static Future<DocumentReference<WaitingUser>> createWaitingUser(
+      DocumentReference<WaitingRoom> roomRef,
+      DocumentSnapshot<User> userSnapshot) async {
+    final waitingUserRef = getWaitingUsers(roomRef).doc(userSnapshot.id);
+    final waitingUserPureRef = _getPureReference(waitingUserRef);
+
+    final json = {
+      ...WaitingUser(
+        userId: userSnapshot.id,
+        user: userSnapshot.data()!,
+        status: WaitingUserStatus.waiting,
+        jitsiRoomName: null,
+        createdAt: DateTime(2023),
+      ).toJson(),
+      ..._currentTimestamp,
+    };
+    waitingUserPureRef.set(json);
+
+    return waitingUserRef;
+  }
+
+  static Future<DocumentReference<WaitingUser>> transferWaitingUser(
+    DocumentReference<WaitingUser> waitingUserRef,
+    DocumentReference<WaitingRoom> destinationRoomRef,
   ) async {
-    final userDocument = await user.get();
+    final waitingUser = (await waitingUserRef.get()).data()!;
+    final newDocumentRef = getWaitingUsers(destinationRoomRef).doc();
+    final newDocumentPureRef = _getPureReference(newDocumentRef);
 
-    final response = await room.collection("waitingUsers").add({
-      "user": userDocument.data()!,
-      "userId": user.id,
-      "status": status,
-      "jitsiRoomName": jitsiRoomName,
-      "createdAt": _currentTime,
-    });
+    final json = {
+      ...waitingUser.toJson(),
+      ..._currentTimestamp,
+      "status": WaitingUserStatus.waiting.toString(),
+    };
 
-    return response.withConverter(
-      fromFirestore: (snapshot, _) => WaitingUser.fromJson(snapshot.data()!),
-      toFirestore: (value, _) => value.toJson(),
-    );
+    final batch = _dbInstance.batch();
+    batch.delete(waitingUserRef);
+    batch.set(newDocumentPureRef, json);
+    await batch.commit();
+
+    return newDocumentRef;
   }
 }

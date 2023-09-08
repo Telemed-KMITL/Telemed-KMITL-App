@@ -11,7 +11,6 @@ enum WaitingUserStatus {
   waiting,
   onCall,
   waitingAgain,
-  finished,
 }
 
 @freezed
@@ -22,6 +21,7 @@ class WaitingUser with _$WaitingUser {
     required WaitingUserStatus status,
     required String? jitsiRoomName,
     @DateTimeConverter() required DateTime createdAt,
+    @DateTimeConverter() DateTime? updatedAt,
   }) = _WaitingUser;
 
   factory WaitingUser.fromJson(Map<String, dynamic> json) =>
