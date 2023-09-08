@@ -4,19 +4,22 @@
         {
             "name": "Launch",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "${workspaceFolder}/lib/main.dart",
         },
         {
             "name": "Launch (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "program": "${workspaceFolder}/lib/main.dart",
         },
         {
             "name": "Launch (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "program": "${workspaceFolder}/lib/main.dart",
         }
     ]
 }

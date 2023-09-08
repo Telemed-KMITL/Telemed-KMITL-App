@@ -5,21 +5,24 @@
             "name": "Launch",
             "request": "launch",
             "type": "dart",
-            "deviceId": "chrome"
+            "deviceId": "chrome",
+            "program": "${workspaceFolder}/lib/main.dart",
         },
         {
             "name": "Launch (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
-            "deviceId": "chrome"
+            "deviceId": "chrome",
+            "program": "${workspaceFolder}/lib/main.dart",
         },
         {
             "name": "Launch (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
-            "deviceId": "chrome"
+            "deviceId": "chrome",
+            "program": "${workspaceFolder}/lib/main.dart",
         }
     ]
 }
