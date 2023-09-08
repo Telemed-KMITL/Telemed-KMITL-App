@@ -51,6 +51,9 @@ class KmitlTelemedicineDb {
     return ref;
   }
 
+  static DocumentReference<WaitingRoom> getWaitingRoomRef(String id) =>
+      waitingRooms.doc(id);
+
   static Future<void> updateWaitingRoom(
       DocumentReference<WaitingRoom> roomRef, WaitingRoom waitingRoom) async {
     final pureRoomRef = _getPureReference(roomRef);
@@ -78,6 +81,12 @@ class KmitlTelemedicineDb {
         "updatedAt",
         descending: true,
       );
+
+  static DocumentReference<WaitingUser> getWaitingUserRef(
+    DocumentReference<WaitingRoom> roomRef,
+    String id,
+  ) =>
+      getWaitingUsers(roomRef).doc(id);
 
   static Future<DocumentReference<WaitingUser>> createWaitingUser(
       DocumentReference<WaitingRoom> roomRef,
