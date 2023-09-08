@@ -4,7 +4,6 @@ import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 class KmitlTelemedicineDb {
   static FirebaseFirestore get _dbInstance => FirebaseFirestore.instance;
   static Map<String, dynamic> get _currentTimestamp => {
-        "createdAt": FieldValue.serverTimestamp(),
         "updatedAt": FieldValue.serverTimestamp(),
       };
   static DocumentReference<Map<String, dynamic>> _getPureReference<T>(
@@ -31,7 +30,7 @@ class KmitlTelemedicineDb {
       ...user.toJson(),
       ..._currentTimestamp,
     };
-    await pureUserRef.set(json, SetOptions(mergeFields: ["createdAt"]));
+    await pureUserRef.set(json);
     return userRef;
   }
 
@@ -61,7 +60,7 @@ class KmitlTelemedicineDb {
       ...waitingRoom.toJson(),
       ..._currentTimestamp,
     };
-    await pureRoomRef.set(json, SetOptions(mergeFields: ["createdAt"]));
+    await pureRoomRef.set(json);
   }
 
   // WaitingUser
@@ -100,7 +99,7 @@ class KmitlTelemedicineDb {
         user: userSnapshot.data()!,
         status: WaitingUserStatus.waiting,
         jitsiRoomName: null,
-        createdAt: DateTime(2023),
+        updatedAt: DateTime(2023),
       ).toJson(),
       ..._currentTimestamp,
     };

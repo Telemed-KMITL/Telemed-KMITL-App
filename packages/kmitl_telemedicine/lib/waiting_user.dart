@@ -20,8 +20,7 @@ class WaitingUser with _$WaitingUser {
     required User user,
     required WaitingUserStatus status,
     required String? jitsiRoomName,
-    @DateTimeConverter() required DateTime createdAt,
-    @DateTimeConverter() DateTime? updatedAt,
+    @DateTimeConverter() required DateTime? updatedAt,
   }) = _WaitingUser;
 
   factory WaitingUser.fromJson(Map<String, dynamic> json) =>

@@ -11,8 +11,7 @@ class WaitingRoom with _$WaitingRoom {
   const factory WaitingRoom({
     required String name,
     required String description,
-    @DateTimeConverter() required DateTime createdAt,
-    @DateTimeConverter() DateTime? updatedAt,
+    @DateTimeConverter() required DateTime? updatedAt,
   }) = _WaitingRoom;
 
   factory WaitingRoom.fromJson(Map<String, dynamic> json) =>

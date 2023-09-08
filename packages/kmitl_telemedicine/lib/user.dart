@@ -15,8 +15,7 @@ class User with _$User {
     required String lastName,
     @JsonKey(unknownEnumValue: UserRole.unknown) required UserRole role,
     required String? HN,
-    @DateTimeConverter() required DateTime createdAt,
-    @DateTimeConverter() DateTime? updatedAt,
+    @DateTimeConverter() required DateTime? updatedAt,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
