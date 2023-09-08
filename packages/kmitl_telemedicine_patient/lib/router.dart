@@ -8,6 +8,7 @@ import "package:kmitl_telemedicine_patient/pages/email_verification_page.dart";
 import "package:kmitl_telemedicine_patient/pages/home_page.dart";
 import "package:kmitl_telemedicine_patient/pages/registration_page.dart";
 import "package:kmitl_telemedicine_patient/pages/signin_page.dart";
+import "package:kmitl_telemedicine_patient/pages/visit_page.dart";
 import "package:kmitl_telemedicine_patient/providers.dart";
 
 class RouteRefreshNotifier extends ChangeNotifier {
@@ -18,6 +19,7 @@ GlobalKey<NavigatorState> _navRootKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouteRefreshNotifier();
   ref.listen(firebaseAuthStateProvider, refreshNotifier.listener);
+  ref.listen(currentUserProvider, refreshNotifier.listener);
 
   return GoRouter(
     navigatorKey: _navRootKey,
@@ -25,6 +27,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final firebaseUser = ref.read(firebaseAuthStateProvider);
+      final user = ref.read(currentUserProvider);
 
       if (firebaseUser.isLoading) {
         return null;
@@ -41,6 +44,16 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (!isFirebaseUserLoggedIn) {
         return onAuthRoute ? null : "/auth";
+      }
+
+      if (!user.hasValue || user.requireValue == null) {
+        return null;
+      }
+
+      if (!user.requireValue!.exists) {
+        return state.matchedLocation == RegistrationPage.path
+            ? null
+            : RegistrationPage.path;
       }
 
       if (atRootPage || onAuthRoute) {
@@ -80,6 +93,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: HomePage.path,
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: VisitPage.path,
+        builder: (context, state) {
+          return const VisitPage();
+        },
       ),
     ],
   );
