@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kmitl_telemedicine_patient/pages/visit_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -12,8 +14,16 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  int _pageIdx = 0;
-  final PageController _pageController = PageController();
+  late int _pageIdx;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pageIdx = 0;
+    _pageController = PageController(initialPage: _pageIdx);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +82,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               ),
               ElevatedButton(
-                onPressed: () => {},
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18.0))),
+                onPressed: () {
+                  context.push(VisitPage.path);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
