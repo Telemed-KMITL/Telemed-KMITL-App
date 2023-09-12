@@ -8,12 +8,15 @@ part 'user.g.dart';
 
 enum UserRole { patient, doctor, nurse, admin, unknown }
 
+enum UserStatus { active, inactive, unknown }
+
 @freezed
 class User with _$User {
   const factory User({
     required String firstName,
     required String lastName,
     @JsonKey(unknownEnumValue: UserRole.unknown) required UserRole role,
+    @JsonKey(unknownEnumValue: UserStatus.unknown) required UserStatus status,
     required String? HN,
     @DateTimeConverter() required DateTime? updatedAt,
   }) = _User;
