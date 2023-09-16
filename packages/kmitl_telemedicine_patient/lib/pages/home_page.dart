@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import 'package:kmitl_telemedicine_patient/pages/visit_page.dart';
+import 'package:kmitl_telemedicine_patient/providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -16,6 +18,7 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   late int _pageIdx;
   late PageController _pageController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -33,14 +36,16 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [_buildHomePage(), _buildVisitPage(), _buildUserPage()],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        onTap: (i) => setState(() {
-          _pageIdx = i;
-          _pageController.animateToPage(
-            i,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        }),
+        onTap: (i) => _isLoading
+            ? null
+            : setState(() {
+                _pageIdx = i;
+                _pageController.animateToPage(
+                  i,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
+              }),
         currentIndex: _pageIdx,
         items: const [
           BottomNavigationBarItem(
@@ -68,6 +73,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildVisitPage() {
+    final user = ref.watch(currentUserProvider).valueOrNull;
     return Center(
       child: Card(
         child: Padding(
@@ -82,9 +88,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               ),
               ElevatedButton(
-                onPressed: () {
-                  context.push(VisitPage.path);
-                },
+                onPressed:
+                    user == null || _isLoading ? null : () => _onVisit(user.id),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
@@ -114,5 +119,51 @@ class _HomePageState extends ConsumerState<HomePage> {
       },
       child: const Text("Logout"),
     );
+  }
+
+  Future<void> _onVisit(String uid) async {
+    setState(() => _isLoading = true);
+
+    final token =
+        await ref.read(firebaseAuthStateProvider).requireValue!.getIdToken();
+    final server = ref.read(kmitlTelemedServerProvider);
+
+    late String visitId;
+    try {
+      final response = await server.getServerApiApi().createVisit(
+        headers: {
+          if (token != null) "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode != 200) {
+        showErrorMessage("HTTP Error: ${response.statusMessage}");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      visitId = response.data!.visitId!;
+    } on DioException catch (e) {
+      showErrorMessage("Internal Error: ${e.message}");
+
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    print(visitId);
+
+    if (context.mounted) {
+      context.push(VisitPage.path);
+    }
+    setState(() => _isLoading = false);
+  }
+
+  void showErrorMessage(String message) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.deepOrange,
+      ));
+    }
   }
 }

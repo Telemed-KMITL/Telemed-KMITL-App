@@ -105,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.13"
+  dio:
+    dependency: "direct main"
+    description:
+      name: dio
+      sha256: ce75a1b40947fea0a0e16ce73337122a86762e38b982e1ccb909daa3b9bc4197
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.3.2"
   email_validator:
     dependency: transitive
     description:
@@ -340,6 +348,15 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  kmitl_telemedicine_server:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "87e0f19ad2cc90fe2f503cd3481705e9d585ccee"
+      url: "https://github.com/Telemed-KMITL/kmitl_telemedicine_server.git"
+    source: git
+    version: "1.0.0"
   lints:
     dependency: transitive
     description:

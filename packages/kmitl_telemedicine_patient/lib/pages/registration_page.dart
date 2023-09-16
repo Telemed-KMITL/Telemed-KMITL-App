@@ -150,6 +150,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         lastName: (form.value["lastName"] as String).trim(),
         role: UserRole.patient,
         HN: hn,
+        status: UserStatus.active,
         updatedAt: DateTime(2023),
       );
 
