@@ -15,9 +15,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
       appBar: AppBar(),
       body: Row(
         children: [
-          Expanded(
+          const Expanded(
             flex: 2,
-            child: VideoCallView(),
+            child: VideoCallView(
+              roomName: "KmitlTelemedTestCall",
+            ),
           ),
           Expanded(
             flex: 1,

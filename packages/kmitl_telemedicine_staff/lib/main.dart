@@ -5,7 +5,6 @@ import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:kmitl_telemedicine_staff/router.dart";
-import "package:kmitl_telemedicine_staff/video_call_view.dart";
 import "firebase_options.dart";
 
 Future<void> main() async {
@@ -15,7 +14,6 @@ Future<void> main() async {
   FirebaseUIAuth.configureProviders([
     EmailAuthProvider(),
   ]);
-  initializeVideoCallView();
   runApp(const ProviderScope(
     child: MainApp(),
   ));
