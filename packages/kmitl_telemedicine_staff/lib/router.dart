@@ -9,8 +9,10 @@ import "package:kmitl_telemedicine_staff/pages/access_denied_page.dart";
 import "package:kmitl_telemedicine_staff/pages/email_verification_page.dart";
 import "package:kmitl_telemedicine_staff/pages/room_list_page.dart";
 import "package:kmitl_telemedicine_staff/pages/signin_page.dart";
+import "package:kmitl_telemedicine_staff/pages/video_call_page.dart";
 import "package:kmitl_telemedicine_staff/pages/waiting_room_page.dart";
 import "package:kmitl_telemedicine_staff/providers.dart";
+import "package:pointer_interceptor/pointer_interceptor.dart";
 
 class RouteRefreshNotifier extends ChangeNotifier {
   void listener(_, __) => notifyListeners();
@@ -113,6 +115,49 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      GoRoute(
+        path: VideoCallPage.path,
+        redirect: (context, state) =>
+            state.extra is DocumentReference<WaitingUser> ? null : "/",
+        builder: (context, state) {
+          return VideoCallPage(state.extra as DocumentReference<WaitingUser>);
+        },
+        onExit: (context) async => (await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                PointerInterceptor(child: SizedBox.expand(child: Container())),
+                AlertDialog(
+                  title: const Text("Are you leaving this page?"),
+                  actions: <Widget>[
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      child: const Text("No"),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      child: const Text("Yes"),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ))!,
+      )
     ],
   );
 });

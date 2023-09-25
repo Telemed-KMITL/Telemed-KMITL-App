@@ -46,9 +46,11 @@ class _JitsiMeetExternalAPI {
 external _builldJitsiMeetOptions(_JitsiMeetOptions options);
 
 class VideoCallView extends StatefulWidget {
-  const VideoCallView({Key? key, required this.roomName}) : super(key: key);
+  const VideoCallView({Key? key, required this.roomName, this.userName})
+      : super(key: key);
 
   final String roomName;
+  final String? userName;
 
   @override
   VideoCallViewState createState() => VideoCallViewState();
@@ -96,8 +98,9 @@ class VideoCallViewState extends State<VideoCallView> {
     final config = _builldJitsiMeetOptions(_JitsiMeetOptions(
       roomName: widget.roomName,
       parentNode: div,
+      userInfo: _JitsiMeetUserInfo(displayName: widget.userName),
     ));
-    const domain = "meet.jit.si";
+    const domain = "blockchain.telemed.kmitl.ac.th";
     _api = _JitsiMeetExternalAPI(domain, config);
   }
 }

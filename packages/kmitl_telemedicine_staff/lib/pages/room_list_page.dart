@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
@@ -13,10 +14,26 @@ class RoomListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final waitingRoomList = ref.watch(waitingRoomListProvider);
+    final firebaseUser = ref.watch(firebaseAuthStateProvider).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("TeleMed"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: () async {
+              var token = await firebaseUser!.getIdToken();
+              if (token != null && context.mounted) {
+                Clipboard.setData(ClipboardData(text: token));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Copied!')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: waitingRoomList.when(
         data: (data) => _buildList(context, data),

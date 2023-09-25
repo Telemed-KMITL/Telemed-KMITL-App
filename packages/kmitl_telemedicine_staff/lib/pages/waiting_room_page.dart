@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:kmitl_telemedicine_staff/pages/video_call_page.dart';
@@ -88,14 +89,23 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
       children: [
         // Header
         TableRow(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Theme.of(context).dividerColor),
+            ),
+          ),
           children: [
-            const TableCell(child: Icon(Icons.numbers)),
-            TableCell(child: Text("Name", style: headerStyle)),
-            TableCell(child: Text("Status", style: headerStyle)),
-            TableCell(child: Text("Actions", style: headerStyle)),
+            const Icon(Icons.numbers),
+            Text("Name", style: headerStyle),
+            Text("Status", style: headerStyle),
+            Text("Actions", style: headerStyle),
           ]
-              .map((w) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10), child: w))
+              .map((w) => TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: w,
+                    ),
+                  ))
               .toList(),
         ),
 
@@ -118,7 +128,6 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
           FixedColumnWidth(100),
         ),
       },
-      border: const TableBorder(horizontalInside: BorderSide()),
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       textBaseline: TextBaseline.ideographic,
     );
@@ -171,13 +180,8 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
             padding: const EdgeInsets.all(10.0),
             child: Row(children: [
               _buildCallButton(
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (c) => VideoCallPage(),
-                    ),
-                  );
-                },
+                () =>
+                    context.push(VideoCallPage.path, extra: document.reference),
               ),
               const SizedBox(width: 4),
               _buildTransferButton(
