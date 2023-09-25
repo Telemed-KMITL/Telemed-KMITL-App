@@ -87,27 +87,6 @@ class KmitlTelemedicineDb {
   ) =>
       getWaitingUsers(roomRef).doc(id);
 
-  static Future<DocumentReference<WaitingUser>> createWaitingUser(
-      DocumentReference<WaitingRoom> roomRef,
-      DocumentSnapshot<User> userSnapshot) async {
-    final waitingUserRef = getWaitingUsers(roomRef).doc(userSnapshot.id);
-    final waitingUserPureRef = _getPureReference(waitingUserRef);
-
-    final json = {
-      ...WaitingUser(
-        userId: userSnapshot.id,
-        user: userSnapshot.data()!,
-        status: WaitingUserStatus.waiting,
-        jitsiRoomName: null,
-        updatedAt: DateTime(2023),
-      ).toJson(),
-      ..._currentTimestamp,
-    };
-    waitingUserPureRef.set(json);
-
-    return waitingUserRef;
-  }
-
   static Future<DocumentReference<WaitingUser>> transferWaitingUser(
     DocumentReference<WaitingUser> waitingUserRef,
     DocumentReference<WaitingRoom> destinationRoomRef,

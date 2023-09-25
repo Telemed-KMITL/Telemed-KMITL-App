@@ -19,7 +19,7 @@ class WaitingUser with _$WaitingUser {
     required String userId,
     required User user,
     required WaitingUserStatus status,
-    required String? jitsiRoomName,
+    required String jitsiRoomName,
     @DateTimeConverter() required DateTime? updatedAt,
   }) = _WaitingUser;
 
