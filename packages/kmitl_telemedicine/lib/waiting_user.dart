@@ -17,6 +17,7 @@ enum WaitingUserStatus {
 class WaitingUser with _$WaitingUser {
   const factory WaitingUser({
     required String userId,
+    required String visitId,
     required User user,
     required WaitingUserStatus status,
     required String jitsiRoomName,

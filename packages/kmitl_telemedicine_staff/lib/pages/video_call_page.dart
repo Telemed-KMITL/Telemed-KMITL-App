@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
+import 'package:kmitl_telemedicine_staff/user_comment_view.dart';
 import 'package:kmitl_telemedicine_staff/video_call_view.dart';
 
 class VideoCallPage extends ConsumerStatefulWidget {
@@ -42,31 +43,38 @@ class _VideoCallPageState extends ConsumerState<VideoCallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder(
-        future: widget.waitingUserRef.get(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            _showErrorMessage("Internal Error: ${snapshot.error}");
-            return Container();
-          }
-          return snapshot.hasData
-              ? _buildUi(snapshot.requireData.data()!)
-              : const Center(child: CircularProgressIndicator());
-        },
+      body: Container(
+        color: Colors.grey,
+        child: FutureBuilder(
+          future: widget.waitingUserRef.get(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              _showErrorMessage("Internal Error: ${snapshot.error}");
+              return Container();
+            }
+            return snapshot.hasData
+                ? _buildUi(snapshot.requireData.data()!)
+                : const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }
 
   Widget _buildUi(WaitingUser waitingUser) {
+    final visitRef =
+        KmitlTelemedicineDb.getVisitRefFromWaitingUser(waitingUser);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: VideoCallView(
-            roomName: waitingUser.jitsiRoomName,
+            waitingUser.jitsiRoomName,
             userName: _getUserDisplayName(
                 ref.read(currentUserProvider).value!.data()!),
           ),
         ),
+        UserCommentView(visitRef),
       ],
     );
   }

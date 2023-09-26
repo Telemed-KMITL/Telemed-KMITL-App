@@ -46,7 +46,7 @@ class _JitsiMeetExternalAPI {
 external _builldJitsiMeetOptions(_JitsiMeetOptions options);
 
 class VideoCallView extends StatefulWidget {
-  const VideoCallView({Key? key, required this.roomName, this.userName})
+  const VideoCallView(this.roomName, {Key? key, this.userName})
       : super(key: key);
 
   final String roomName;
