@@ -87,6 +87,16 @@ class KmitlTelemedicineDb {
   ) =>
       getWaitingUsers(roomRef).doc(id);
 
+  static Future<void> setWaitingUserStatus(
+    DocumentReference<WaitingUser> userRef,
+    WaitingUserStatus status,
+  ) async {
+    await _getPureReference(userRef).set({
+      "status": status.name,
+      ..._currentTimestamp,
+    }, SetOptions(merge: true));
+  }
+
   static Future<DocumentReference<WaitingUser>> transferWaitingUser(
     DocumentReference<WaitingUser> waitingUserRef,
     DocumentReference<WaitingRoom> destinationRoomRef,

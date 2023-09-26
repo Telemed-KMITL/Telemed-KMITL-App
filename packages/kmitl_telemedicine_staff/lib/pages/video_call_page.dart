@@ -22,6 +22,24 @@ class _VideoCallPageState extends ConsumerState<VideoCallPage> {
   VideoCallViewState get _videoCall => _videoCallKey.currentState!;
 
   @override
+  void initState() {
+    super.initState();
+    KmitlTelemedicineDb.setWaitingUserStatus(
+      widget.waitingUserRef,
+      WaitingUserStatus.onCall,
+    );
+  }
+
+  @override
+  void dispose() {
+    KmitlTelemedicineDb.setWaitingUserStatus(
+      widget.waitingUserRef,
+      WaitingUserStatus.waitingAgain,
+    );
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder(
