@@ -28,6 +28,7 @@ migrate_working_dir/
 .dart_tool/
 .packages
 build/
+.flutter-plugins*
 
 # Freezed
 # ref: https://github.com/rrousselGit/freezed/blob/master/packages/freezed/example/.gitignore
