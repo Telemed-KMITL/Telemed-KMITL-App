@@ -97,7 +97,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: VisitPage.path,
         builder: (context, state) {
-          return const VisitPage();
+          return VisitPage(state.pathParameters["visitId"]!);
         },
       ),
     ],

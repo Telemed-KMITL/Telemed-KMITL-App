@@ -11,6 +11,7 @@ enum WaitingUserStatus {
   waiting,
   onCall,
   waitingAgain,
+  finished,
 }
 
 @freezed

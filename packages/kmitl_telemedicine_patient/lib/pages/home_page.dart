@@ -138,24 +138,20 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       if (response.statusCode != 200) {
         showErrorMessage("HTTP Error: ${response.statusMessage}");
-        setState(() => _isLoading = false);
         return;
       }
 
       visitId = response.data!.visitId!;
+
+      if (context.mounted) {
+        context.push("/visit/$visitId");
+      }
     } on DioException catch (e) {
       showErrorMessage("Internal Error: ${e.message}");
-
-      setState(() => _isLoading = false);
       return;
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    print(visitId);
-
-    if (context.mounted) {
-      context.push(VisitPage.path);
-    }
-    setState(() => _isLoading = false);
   }
 
   void showErrorMessage(String message) {
