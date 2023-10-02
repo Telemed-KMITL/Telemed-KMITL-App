@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine/visit.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 
 class UserCommentView extends ConsumerStatefulWidget {
@@ -19,16 +19,21 @@ class UserCommentView extends ConsumerStatefulWidget {
 class _UserCommentViewState extends ConsumerState<UserCommentView> {
   final TextEditingController _commentInput = TextEditingController();
   final ScrollController _commentListScroll = ScrollController();
-  List<String> _comments = [];
+  final Map<String, String> _usernameCache = {};
+
+  List<Comment> _comments = [];
   bool _isSending = false;
 
   @override
   Widget build(BuildContext context) {
     ref.listen(
-      userVisitProvider(widget.visitRef)
-          .select((asyncVal) => asyncVal.value?.data()?.comments),
-      (_, comments) => setState(() {
-        _comments = comments == null ? [] : List.from(comments);
+      userCommentProvider(widget.visitRef),
+      (_, snapshot) => setState(() {
+        final comments = snapshot.valueOrNull;
+        if (comments != null) {
+          _comments = comments.docs.map((snapshot) => snapshot.data()).toList();
+          fetchUsernames();
+        }
         _isSending = false;
       }),
     );
@@ -80,18 +85,44 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
     );
   }
 
-  Widget _buildComment(String text, bool sending) {
+  String _formatCommentTimestamp(DateTime time) {
+    final now = DateTime.now();
+    bool isToday =
+        time.year == now.year && time.month == now.month && time.day == now.day;
+    return isToday
+        ? DateFormat("H:mm").format(time)
+        : DateFormat("yyyy-MM-dd H:mm").format(time);
+  }
+
+  Widget _buildCommentHeader(Comment comment, bool sending) {
+    String? uid = comment.authorUid;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(uid == null ? "" : _usernameCache[uid]!),
+        Text(sending ? "Sending" : _formatCommentTimestamp(comment.createdAt))
+      ],
+    );
+  }
+
+  Widget _buildComment(Comment comment, bool sending) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: sending ? Colors.black54 : null,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCommentHeader(comment, sending),
+              Text(
+                comment.text,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: sending ? Colors.black45 : null,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -140,20 +171,51 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
     );
   }
 
+  Future<void> fetchUsernames() async {
+    for (final comment in _comments) {
+      String? uid = comment.authorUid;
+
+      if (uid != null && !_usernameCache.containsKey(uid)) {
+        _usernameCache[uid] = "";
+
+        () async {
+          final snapshot = await KmitlTelemedicineDb.getUserRef(uid).get();
+          final user = snapshot.exists ? snapshot.data() : null;
+
+          setState(() {
+            _usernameCache[uid] =
+                user == null ? "[Deleted User]" : user.getDisplayName();
+          });
+        }();
+      }
+    }
+  }
+
   Future<void> _onSendComment() async {
-    final comment = _commentInput.text;
+    String uid = ref.read(firebaseAuthStateProvider).requireValue!.uid;
+
+    final commentText = _commentInput.text.trim();
+    _commentInput.clear();
+
+    if (commentText.isEmpty) {
+      return;
+    }
 
     setState(() {
-      _commentInput.clear();
-      _comments.add(comment);
+      _comments.add(Comment(
+          text: commentText, authorUid: uid, createdAt: DateTime.now()));
       _isSending = true;
     });
 
     try {
-      await KmitlTelemedicineDb.addComment(widget.visitRef, comment);
+      await KmitlTelemedicineDb.addComment(
+        widget.visitRef,
+        commentText,
+        uid,
+      );
     } on Exception {
       setState(() {
-        _commentInput.text = comment;
+        _commentInput.text = commentText;
         _comments.removeLast();
         _isSending = false;
       });

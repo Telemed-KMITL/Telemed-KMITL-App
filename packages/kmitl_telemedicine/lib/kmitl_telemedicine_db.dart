@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine/visit.dart';
 
 class KmitlTelemedicineDb {
   static FirebaseFirestore get _dbInstance => FirebaseFirestore.instance;
@@ -109,7 +108,7 @@ class KmitlTelemedicineDb {
     final waitingUser = (await waitingUserRef.get()).data()!;
     final newDocumentRef = getWaitingUsers(destinationRoomRef).doc();
     final newDocumentPureRef = _getPureReference(newDocumentRef);
-  
+
     final json = {
       ...waitingUser.toJson(),
       ..._currentTimestamp,
@@ -148,16 +147,35 @@ class KmitlTelemedicineDb {
         waitingUser.visitId,
       );
 
+  // Comment
+
+  static CollectionReference<Comment> getComments(
+    DocumentReference<Visit> visitRef,
+  ) =>
+      visitRef.collection("comments").withConverter(
+            fromFirestore: (snapshot, _) => Comment.fromJson(snapshot.data()!),
+            toFirestore: (value, _) => value.toJson(),
+          );
+
+  static Query<Comment> getSortedComments(
+    DocumentReference<Visit> visitRef,
+  ) =>
+      visitRef.collection("comments").orderBy("createdAt").withConverter(
+            fromFirestore: (snapshot, _) => Comment.fromJson(snapshot.data()!),
+            toFirestore: (value, _) => value.toJson(),
+          );
+
   static Future<void> addComment(
     DocumentReference<Visit> visitRef,
     String comment,
+    String? authorUid,
   ) async {
-    final visit = (await visitRef.get()).data()!;
-    var comments = (visit.comments != null) ? List.from(visit.comments!) : [];
-    comments.add(comment);
-    await _getPureReference(visitRef).set({
-      "comments": comments,
-      ..._currentTimestamp,
-    }, SetOptions(merge: true));
+    final comments = getComments(visitRef);
+    final commentRef = comments.doc();
+    await _getPureReference(commentRef).set({
+      "text": comment,
+      "authorUid": authorUid,
+      "createdAt": FieldValue.serverTimestamp(),
+    });
   }
 }

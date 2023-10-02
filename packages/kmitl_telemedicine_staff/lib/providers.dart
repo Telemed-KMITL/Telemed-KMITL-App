@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine/visit.dart';
 
 final firebaseAuthStateProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
@@ -15,6 +14,11 @@ final userProvider = StreamProvider.autoDispose.family(
 final userVisitProvider = StreamProvider.autoDispose.family(
   (ref, DocumentReference<Visit> visitRef) => visitRef.snapshots(),
 );
+
+final userCommentProvider =
+    StreamProvider.autoDispose.family((ref, DocumentReference<Visit> visitRef) {
+  return KmitlTelemedicineDb.getSortedComments(visitRef).snapshots();
+});
 
 final waitingRoomListProvider = StreamProvider.autoDispose(
   (ref) => KmitlTelemedicineDb.waitingRooms.snapshots(),
