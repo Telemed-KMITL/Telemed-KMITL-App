@@ -12,6 +12,7 @@ enum UserStatus { active, inactive, unknown }
 
 @freezed
 class User with _$User {
+  const User._();
   const factory User({
     required String firstName,
     required String lastName,
@@ -22,4 +23,6 @@ class User with _$User {
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  String getDisplayName() => "$firstName $lastName";
 }

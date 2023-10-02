@@ -16,6 +16,7 @@ enum WaitingUserStatus {
 
 @freezed
 class WaitingUser with _$WaitingUser {
+  @JsonSerializable(explicitToJson: true)
   const factory WaitingUser({
     required String userId,
     required String visitId,

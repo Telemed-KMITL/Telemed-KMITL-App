@@ -159,7 +159,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.baseline,
           child: Text(
-            "${waitingUser.user.firstName} ${waitingUser.user.lastName}",
+            waitingUser.user.getDisplayName(),
             style: usernameStyle,
           ),
         ),

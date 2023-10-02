@@ -19,6 +19,7 @@ class RouteRefreshNotifier extends ChangeNotifier {
 }
 
 GlobalKey<NavigatorState> _navRootKey = GlobalKey();
+GlobalKey<VideoCallPageState> _videoCallPageKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouteRefreshNotifier();
   ref.listen(firebaseAuthStateProvider, refreshNotifier.listener);
@@ -120,43 +121,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         redirect: (context, state) =>
             state.extra is DocumentReference<WaitingUser> ? null : "/",
         builder: (context, state) {
-          return VideoCallPage(state.extra as DocumentReference<WaitingUser>);
+          return VideoCallPage(state.extra as DocumentReference<WaitingUser>,
+              key: _videoCallPageKey);
         },
-        onExit: (context) async => (await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                PointerInterceptor(child: SizedBox.expand(child: Container())),
-                AlertDialog(
-                  title: const Text("Are you leaving this page?"),
-                  actions: <Widget>[
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        textStyle: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      child: const Text("No"),
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                      },
-                    ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        textStyle: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      child: const Text("Yes"),
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ))!,
+        onExit: (context) async {
+          final state = _videoCallPageKey.currentState;
+          if (state == null || !state.mounted) {
+            return true;
+          }
+          return await state.onExit(context);
+        },
       )
     ],
   );

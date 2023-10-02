@@ -54,6 +54,10 @@ class KmitlTelemedicineDb {
   static DocumentReference<WaitingRoom> getWaitingRoomRef(String id) =>
       waitingRooms.doc(id);
 
+  static DocumentReference<WaitingRoom> getWaitingRoomRefFromWaitingUser(
+          DocumentReference<WaitingUser> userRef) =>
+      getWaitingRoomRef(userRef.parent.parent!.id);
+
   static Future<void> updateWaitingRoom(
       DocumentReference<WaitingRoom> roomRef, WaitingRoom waitingRoom) async {
     final pureRoomRef = _getPureReference(roomRef);
@@ -105,7 +109,7 @@ class KmitlTelemedicineDb {
     final waitingUser = (await waitingUserRef.get()).data()!;
     final newDocumentRef = getWaitingUsers(destinationRoomRef).doc();
     final newDocumentPureRef = _getPureReference(newDocumentRef);
-
+  
     final json = {
       ...waitingUser.toJson(),
       ..._currentTimestamp,

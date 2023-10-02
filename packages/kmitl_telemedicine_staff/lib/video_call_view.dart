@@ -40,17 +40,28 @@ class _JitsiMeetExternalAPI {
   );
 
   external void dispose();
+
+  external dynamic executeCommand(String command);
+
+  external void addListener(String event, dynamic listener);
+
+  external void removeListener(String event, dynamic listener);
 }
 
 @JS("window.builldJitsiMeetOptions")
 external _builldJitsiMeetOptions(_JitsiMeetOptions options);
 
 class VideoCallView extends StatefulWidget {
-  const VideoCallView(this.roomName, {Key? key, this.userName})
-      : super(key: key);
+  const VideoCallView(
+    this.roomName, {
+    Key? key,
+    this.userName,
+    this.onInitialized,
+  }) : super(key: key);
 
   final String roomName;
   final String? userName;
+  final VoidCallback? onInitialized;
 
   @override
   VideoCallViewState createState() => VideoCallViewState();
@@ -88,6 +99,10 @@ class VideoCallViewState extends State<VideoCallView> {
     super.dispose();
   }
 
+  void hangup() async {
+    _api?.executeCommand("hangup");
+  }
+
   Widget _buildHtmlView() => HtmlElementView(
         viewType: kViewId,
         onPlatformViewCreated: _onPlatformViewCreated,
@@ -100,7 +115,10 @@ class VideoCallViewState extends State<VideoCallView> {
       parentNode: div,
       userInfo: _JitsiMeetUserInfo(displayName: widget.userName),
     ));
+
     const domain = "blockchain.telemed.kmitl.ac.th";
     _api = _JitsiMeetExternalAPI(domain, config);
+
+    widget.onInitialized?.call();
   }
 }
