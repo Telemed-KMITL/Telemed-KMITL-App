@@ -22,8 +22,8 @@ class VideoCallPage extends ConsumerStatefulWidget {
 
 enum _ExitReason {
   Undefined,
-  UserTransferred,
-  Hangupped,
+  UserTransfer,
+  UserHangup,
 }
 
 class VideoCallPageState extends ConsumerState<VideoCallPage> {
@@ -44,7 +44,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
   @override
   void dispose() {
-    if (_exitReason != _ExitReason.UserTransferred) {
+    if (_exitReason != _ExitReason.UserTransfer) {
       KmitlTelemedicineDb.setWaitingUserStatus(
         widget.waitingUserRef,
         WaitingUserStatus.waitingAgain,
@@ -79,7 +79,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       children: [
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Flexible(
                 child: VideoCallView(
@@ -90,13 +90,19 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
                       .value!
                       .data()!
                       .getDisplayName(),
+                  readyToClose: _exit,
                 ),
               ),
-              Row(
-                children: [
-                  _buildHangupButton(),
-                  _buildTransferButton(),
-                ],
+              Container(
+                color: Colors.black,
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildHangupButton(),
+                    _buildTransferButton(),
+                  ],
+                ),
               )
             ],
           ),
@@ -108,9 +114,14 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
   Widget _buildHangupButton() {
     return FilledButton(
+      style: FilledButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(20),
+        backgroundColor: Colors.red,
+      ),
       onPressed: () {
         _videoCall.hangup();
-        _exit(_ExitReason.Hangupped);
+        _exitReason = _ExitReason.UserHangup;
       },
       child: const Icon(
         Icons.call_end,
@@ -121,6 +132,11 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
   Widget _buildTransferButton() {
     return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.all(20),
+        textStyle: const TextStyle(fontSize: 18),
+      ),
       onPressed: _transferUser,
       icon: const Icon(
         Icons.logout,
@@ -145,7 +161,13 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       builder: (context) => Stack(
         alignment: Alignment.center,
         children: [
-          PointerInterceptor(child: SizedBox.expand(child: Container())),
+          PointerInterceptor(
+            child: SizedBox.expand(
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
           TransferWaitingUserDialog(
             waitingUser: widget.waitingUserRef,
           )
@@ -157,22 +179,20 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       return;
     }
 
-    _videoCall.hangup();
     await KmitlTelemedicineDb.transferWaitingUser(
         widget.waitingUserRef, destination);
-
-    _exit(_ExitReason.UserTransferred);
+    _videoCall.hangup();
+    _exitReason = _ExitReason.UserTransfer;
   }
 
-  void _exit(_ExitReason reason) {
+  void _exit() {
     if (context.mounted) {
       context.pop();
     }
-    _exitReason = reason;
   }
 
   Future<bool> onExit(BuildContext context) async {
-    if (_exitReason != _ExitReason.Undefined) {
+    if (!_videoCall.callingState.value) {
       return true;
     }
     final result = await showDialog<bool>(
@@ -185,24 +205,14 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
             PointerInterceptor(child: SizedBox.expand(child: Container())),
             AlertDialog(
               title: const Text("Are you leaving this page?"),
-              actions: <Widget>[
+              actions: [
                 TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme.of(context).textTheme.labelLarge,
-                  ),
                   child: const Text("No"),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
+                  onPressed: () => Navigator.of(context).pop(false),
                 ),
                 TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme.of(context).textTheme.labelLarge,
-                  ),
                   child: const Text("Yes"),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
+                  onPressed: () => Navigator.of(context).pop(true),
                 ),
               ],
             ),

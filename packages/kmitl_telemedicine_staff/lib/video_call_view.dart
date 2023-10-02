@@ -43,9 +43,9 @@ class _JitsiMeetExternalAPI {
 
   external dynamic executeCommand(String command);
 
-  external void addListener(String event, dynamic listener);
+  external void addListener(String event, Function listener);
 
-  external void removeListener(String event, dynamic listener);
+  external void removeListener(String event, Function listener);
 }
 
 @JS("window.builldJitsiMeetOptions")
@@ -57,11 +57,17 @@ class VideoCallView extends StatefulWidget {
     Key? key,
     this.userName,
     this.onInitialized,
+    this.readyToClose,
+    this.videoConferenceJoined,
+    this.videoConferenceLeft,
   }) : super(key: key);
 
   final String roomName;
   final String? userName;
   final VoidCallback? onInitialized;
+  final VoidCallback? readyToClose;
+  final VoidCallback? videoConferenceJoined;
+  final VoidCallback? videoConferenceLeft;
 
   @override
   VideoCallViewState createState() => VideoCallViewState();
@@ -72,6 +78,7 @@ class VideoCallViewState extends State<VideoCallView> {
   static const String kHtmlDivId = "video-conference-view";
 
   bool get initialized => _api != null;
+  final ValueNotifier<bool> callingState = ValueNotifier(false);
 
   _JitsiMeetExternalAPI? _api;
 
@@ -108,6 +115,23 @@ class VideoCallViewState extends State<VideoCallView> {
         onPlatformViewCreated: _onPlatformViewCreated,
       );
 
+  void _readyToCloseCallback(_) {
+    print("Event: readyToClose");
+    widget.readyToClose?.call();
+  }
+
+  void _videoConferenceJoinedCallback(_) {
+    print("Event: videoConferenceJoined");
+    callingState.value = true;
+    widget.videoConferenceJoined?.call();
+  }
+
+  void _videoConferenceLeftCallback(_) {
+    print("Event: videoConferenceLeft");
+    callingState.value = false;
+    widget.videoConferenceLeft?.call();
+  }
+
   void _onPlatformViewCreated(int id) {
     final div = ui.platformViewRegistry.getViewById(id) as html.DivElement;
     final config = _builldJitsiMeetOptions(_JitsiMeetOptions(
@@ -115,9 +139,14 @@ class VideoCallViewState extends State<VideoCallView> {
       parentNode: div,
       userInfo: _JitsiMeetUserInfo(displayName: widget.userName),
     ));
-
     const domain = "blockchain.telemed.kmitl.ac.th";
-    _api = _JitsiMeetExternalAPI(domain, config);
+
+    _api = _JitsiMeetExternalAPI(domain, config)
+      ..addListener("readyToClose", allowInterop(_readyToCloseCallback))
+      ..addListener(
+          "videoConferenceJoined", allowInterop(_videoConferenceJoinedCallback))
+      ..addListener(
+          "videoConferenceLeft", allowInterop(_videoConferenceLeftCallback));
 
     widget.onInitialized?.call();
   }
