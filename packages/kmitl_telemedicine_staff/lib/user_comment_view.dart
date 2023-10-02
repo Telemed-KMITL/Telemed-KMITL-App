@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
+import 'package:kmitl_telemedicine/utils/date_time_extension.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 
 class UserCommentView extends ConsumerStatefulWidget {
@@ -85,22 +85,13 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
     );
   }
 
-  String _formatCommentTimestamp(DateTime time) {
-    final now = DateTime.now();
-    bool isToday =
-        time.year == now.year && time.month == now.month && time.day == now.day;
-    return isToday
-        ? DateFormat("H:mm").format(time)
-        : DateFormat("yyyy-MM-dd H:mm").format(time);
-  }
-
   Widget _buildCommentHeader(Comment comment, bool sending) {
     String? uid = comment.authorUid;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(uid == null ? "" : _usernameCache[uid]!),
-        Text(sending ? "Sending" : _formatCommentTimestamp(comment.createdAt))
+        Text(sending ? "Sending" : comment.createdAt.toTimestampString())
       ],
     );
   }

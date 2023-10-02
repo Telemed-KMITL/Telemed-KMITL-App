@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:kmitl_telemedicine/utils/date_time_extension.dart';
 import 'package:kmitl_telemedicine_staff/pages/video_call_page.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 
@@ -97,6 +98,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
           children: [
             const Icon(Icons.numbers),
             Text("Name", style: headerStyle),
+            Text("Update", style: headerStyle),
             Text("Status", style: headerStyle),
             Text("Actions", style: headerStyle),
           ]
@@ -119,11 +121,14 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
         // Name
         1: FlexColumnWidth(),
 
-        // Status
+        // Date
         2: FixedColumnWidth(120),
 
+        // Status
+        3: FixedColumnWidth(120),
+
         // Actions
-        3: MaxColumnWidth(
+        4: MaxColumnWidth(
           IntrinsicColumnWidth(),
           FixedColumnWidth(100),
         ),
@@ -164,6 +169,15 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
           ),
         ),
 
+        // Date
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.baseline,
+          child: Text(
+            waitingUser.updatedAt?.toTimestampString() ?? "unknown",
+            style: textStyle,
+          ),
+        ),
+
         // Status
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.baseline,
@@ -185,7 +199,8 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
               ),
               const SizedBox(width: 4),
               _buildTransferButton(
-                (room) {},
+                (room) => KmitlTelemedicineDb.transferWaitingUser(
+                    document.reference, room),
               ),
             ]),
           ),
