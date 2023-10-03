@@ -173,7 +173,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.baseline,
           child: Text(
-            waitingUser.updatedAt?.toTimestampString() ?? "unknown",
+            waitingUser.updatedAt?.toLongTimestampString() ?? "unknown",
             style: textStyle,
           ),
         ),

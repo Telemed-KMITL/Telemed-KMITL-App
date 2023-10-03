@@ -90,7 +90,9 @@ class VideoCallViewState extends State<VideoCallView> {
         (int id) => html.DivElement()
           ..id = kHtmlDivId
           ..style.width = "100%"
-          ..style.height = "100%");
+          ..style.height = "100%"
+          ..style.borderRadius = "10px"
+          ..style.overflow = "hidden");
   }
 
   @override

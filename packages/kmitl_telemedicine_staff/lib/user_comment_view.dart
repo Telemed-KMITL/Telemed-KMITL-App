@@ -91,7 +91,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(uid == null ? "" : _usernameCache[uid]!),
-        Text(sending ? "Sending" : comment.createdAt.toTimestampString())
+        Text(sending ? "Sending" : comment.createdAt.toShortTimestampString())
       ],
     );
   }

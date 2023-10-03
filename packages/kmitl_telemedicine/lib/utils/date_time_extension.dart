@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 extension DateTimeExtension on DateTime {
-  String toTimestampString({DateTime? currentTime}) {
+  String toShortTimestampString({DateTime? currentTime}) {
     currentTime ??= DateTime.now();
 
     late DateFormat format;
@@ -14,6 +14,11 @@ extension DateTimeExtension on DateTime {
       format = DateFormat.yMd().add_Hm();
     }
 
+    return format.format(this);
+  }
+
+  String toLongTimestampString() {
+    DateFormat format = DateFormat.yMd().add_Hm();
     return format.format(this);
   }
 }

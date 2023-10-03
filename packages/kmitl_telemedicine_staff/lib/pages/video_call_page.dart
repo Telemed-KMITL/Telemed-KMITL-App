@@ -78,33 +78,41 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Flexible(
-                child: VideoCallView(
-                  waitingUser.jitsiRoomName,
-                  key: _videoCallKey,
-                  userName: ref
-                      .read(currentUserProvider)
-                      .value!
-                      .data()!
-                      .getDisplayName(),
-                  readyToClose: _exit,
-                ),
-              ),
-              Container(
-                color: Colors.black,
+          child: Container(
+                color: Colors.grey.shade800,
                 padding: const EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildHangupButton(),
-                    _buildTransferButton(),
-                  ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Flexible(
+                  child: VideoCallView(
+                    waitingUser.jitsiRoomName,
+                    key: _videoCallKey,
+                    userName: ref
+                        .read(currentUserProvider)
+                        .value!
+                        .data()!
+                        .getDisplayName(),
+                    readyToClose: _exit,
+                  ),
                 ),
-              )
-            ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHangupButton(),
+                      const SizedBox(width: 8),
+                      _buildTransferButton(),
+                      const SizedBox(width: 8),
+                      _buildEndVisitingButton(),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         UserCommentView(visitRef),
@@ -116,7 +124,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
     return FilledButton(
       style: FilledButton.styleFrom(
         shape: const CircleBorder(),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(0),
         backgroundColor: Colors.red,
       ),
       onPressed: () {
@@ -133,9 +141,9 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   Widget _buildTransferButton() {
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         textStyle: const TextStyle(fontSize: 18),
+        backgroundColor: Colors.orange.shade800,
       ),
       onPressed: _transferUser,
       icon: const Icon(
@@ -143,6 +151,22 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         size: 40,
       ),
       label: const Text("Transfer"),
+    );
+  }
+
+  Widget _buildEndVisitingButton() {
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        textStyle: const TextStyle(fontSize: 18),
+        backgroundColor: Colors.orange.shade800,
+      ),
+      onPressed: () {}, // TODO: EndVisiting
+      icon: const Icon(
+        Icons.close,
+        size: 40,
+      ),
+      label: const Text("End Visiting"),
     );
   }
 
