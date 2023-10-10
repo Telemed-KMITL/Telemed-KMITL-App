@@ -37,13 +37,21 @@ final userVisitProvider =
   }
 });
 
-final kmitlTelemedServerProvider = Provider((ref) => KmitlTelemedicineServer(
-      dio: Dio(
-        BaseOptions(
-          baseUrl: "https://blockchain.telemed.kmitl.ac.th/api",
-          connectTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 3),
-          followRedirects: true,
-        ),
+final kmitlTelemedServerProvider = FutureProvider((ref) async {
+  final token =
+      await ref.watch(firebaseAuthStateProvider).valueOrNull?.getIdToken();
+  final server = KmitlTelemedicineServer(
+    dio: Dio(
+      BaseOptions(
+        baseUrl: "https://blockchain.telemed.kmitl.ac.th/api",
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 3),
+        followRedirects: true,
       ),
-    ));
+    ),
+  );
+  if (token != null) {
+    server.setBearerAuth("FirebaseJwtBarer", token);
+  }
+  return server;
+});

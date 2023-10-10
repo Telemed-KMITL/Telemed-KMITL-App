@@ -7,16 +7,16 @@ part 'visit.freezed.dart';
 part 'visit.g.dart';
 
 enum VisitStatus {
-  ready,
-  finished,
+  waiting,
+  calling,
 }
 
 @freezed
 class Visit with _$Visit {
   const factory Visit({
     required VisitStatus status,
-    required String? jitsiRoomName,
-    List<String>? comments,
+    required bool isFinished,
+    required String jitsiRoomName,
     @DateTimeConverter() required DateTime? createdAt,
   }) = _Visit;
 

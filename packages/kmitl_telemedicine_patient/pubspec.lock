@@ -361,7 +361,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "093292857d917777e60340565c5cb5deff79c2c8"
+      resolved-ref: "1296fbd4be2b4cefddaac1f03018ec081d35f7fe"
       url: "https://github.com/Telemed-KMITL/kmitl_telemedicine_server.git"
     source: git
     version: "1.0.0"

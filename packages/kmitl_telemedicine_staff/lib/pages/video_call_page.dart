@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,14 +25,16 @@ enum _ExitReason {
   Undefined,
   UserTransfer,
   UserHangup,
+  VisitFinished,
 }
 
 class VideoCallPageState extends ConsumerState<VideoCallPage> {
   final GlobalKey<VideoCallViewState> _videoCallKey = GlobalKey();
 
   VideoCallViewState get _videoCall => _videoCallKey.currentState!;
-
+  WaitingUser? _waitingUser;
   _ExitReason _exitReason = _ExitReason.Undefined;
+  bool _finalized = false;
 
   @override
   void initState() {
@@ -40,17 +43,6 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       widget.waitingUserRef,
       WaitingUserStatus.onCall,
     );
-  }
-
-  @override
-  void dispose() {
-    if (_exitReason != _ExitReason.UserTransfer) {
-      KmitlTelemedicineDb.setWaitingUserStatus(
-        widget.waitingUserRef,
-        WaitingUserStatus.waitingAgain,
-      );
-    }
-    super.dispose();
   }
 
   @override
@@ -63,9 +55,19 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
             _showErrorMessage("Internal Error: ${snapshot.error}");
             return Container();
           }
-          return snapshot.hasData
-              ? _buildUi(snapshot.requireData.data()!)
-              : const Center(child: CircularProgressIndicator());
+
+          if (!snapshot.hasData) {
+            const Center(child: CircularProgressIndicator());
+          }
+
+          _waitingUser ??= snapshot.requireData.data();
+
+          if (_waitingUser == null) {
+            _showErrorMessage("Failed to load WaitingUser");
+            return Container();
+          }
+
+          return _buildUi(_waitingUser!);
         },
       ),
     );
@@ -79,8 +81,8 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       children: [
         Expanded(
           child: Container(
-                color: Colors.grey.shade800,
-                padding: const EdgeInsets.all(10),
+            color: Colors.grey.shade800,
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -93,7 +95,9 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
                         .value!
                         .data()!
                         .getDisplayName(),
-                    readyToClose: _exit,
+                    readyToClose: _videoConferenceReadyToClose,
+                    videoConferenceJoined: _onVideoConferenceStarted,
+                    videoConferenceLeft: _onVideoConferenceEnded,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -127,10 +131,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         padding: const EdgeInsets.all(0),
         backgroundColor: Colors.red,
       ),
-      onPressed: () {
-        _videoCall.hangup();
-        _exitReason = _ExitReason.UserHangup;
-      },
+      onPressed: () => _exit(_ExitReason.UserHangup),
       child: const Icon(
         Icons.call_end,
         size: 40,
@@ -161,12 +162,37 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         textStyle: const TextStyle(fontSize: 18),
         backgroundColor: Colors.orange.shade800,
       ),
-      onPressed: () {}, // TODO: EndVisiting
+      onPressed: _finishVisiting,
       icon: const Icon(
         Icons.close,
         size: 40,
       ),
-      label: const Text("End Visiting"),
+      label: const Text("Finish Visiting"),
+    );
+  }
+
+  Widget _buildLeavePageDialog(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        PointerInterceptor(child: SizedBox.expand(child: Container())),
+        AlertDialog(
+          title: const Text("Leave page?"),
+          content: const Text("Patient will be \"Waiting Again\"."),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => context.pop(false),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.call_end),
+              label: const Text("Leave Page"),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => context.pop(true),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -176,6 +202,37 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         content: Text(message),
         backgroundColor: Colors.deepOrange,
       ));
+    }
+  }
+
+  Future<void> _onVideoConferenceStarted() async {
+    await KmitlTelemedicineDb.setVisitStatus(
+      KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
+      VisitStatus.calling,
+    );
+  }
+
+  Future<void> _onVideoConferenceEnded() async {
+    await KmitlTelemedicineDb.setVisitStatus(
+      KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
+      VisitStatus.waiting,
+    );
+  }
+
+  Future<void> _finishVisiting() async {
+    final server = await ref.read(kmitlTelemedServerProvider.future);
+    final roomId = KmitlTelemedicineDb.getWaitingRoomRefFromWaitingUser(
+            widget.waitingUserRef)
+        .id;
+
+    try {
+      await server.getVisitApiApi().finishVisit(
+            roomId: roomId,
+            waitingUserId: widget.waitingUserRef.id,
+          );
+      await _exit(_ExitReason.VisitFinished);
+    } on DioException catch (e) {
+      _showErrorMessage(e.response?.data);
     }
   }
 
@@ -205,45 +262,72 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
     await KmitlTelemedicineDb.transferWaitingUser(
         widget.waitingUserRef, destination);
-    _videoCall.hangup();
-    _exitReason = _ExitReason.UserTransfer;
+    await _exit(_ExitReason.UserTransfer);
   }
 
-  void _exit() {
+  Future<void> _exit(_ExitReason reason) async {
+    _exitReason = reason;
+
+    if (_videoCall.callingState.value) {
+      _videoCall.hangup();
+      return;
+    }
+
+    await _finalize();
     if (context.mounted) {
       context.pop();
     }
   }
 
-  Future<bool> onExit(BuildContext context) async {
+  Future<void> _videoConferenceReadyToClose() async {
+    await _finalize();
+    if (context.mounted) {
+      context.pop();
+    }
+  }
+
+  Future<bool> onLeavingPage(BuildContext context) async {
     if (!_videoCall.callingState.value) {
+      await _finalize();
       return true;
     }
+
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            PointerInterceptor(child: SizedBox.expand(child: Container())),
-            AlertDialog(
-              title: const Text("Are you leaving this page?"),
-              actions: [
-                TextButton(
-                  child: const Text("No"),
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-                TextButton(
-                  child: const Text("Yes"),
-                  onPressed: () => Navigator.of(context).pop(true),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+      builder: _buildLeavePageDialog,
     );
-    return result!;
+    if (result ?? false) {
+      await _exit(_ExitReason.UserHangup);
+    }
+    return false;
+  }
+
+  Future<void> _finalize() async {
+    if (_finalized) {
+      return;
+    }
+    _finalized = true;
+
+    if (_waitingUser != null) {
+      final updatingStateRequired = switch (_exitReason) {
+        _ExitReason.Undefined => true,
+        _ExitReason.UserTransfer => false,
+        _ExitReason.UserHangup => true,
+        _ExitReason.VisitFinished => false,
+      };
+      if (updatingStateRequired) {
+        await KmitlTelemedicineDb.setWaitingUserStatus(
+          widget.waitingUserRef,
+          WaitingUserStatus.waitingAgain,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _finalize().ignore();
+    super.dispose();
   }
 }

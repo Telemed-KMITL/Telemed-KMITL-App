@@ -124,17 +124,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _onVisit(String uid) async {
     setState(() => _isLoading = true);
 
-    final token =
-        await ref.read(firebaseAuthStateProvider).requireValue!.getIdToken();
-    final server = ref.read(kmitlTelemedServerProvider);
+    final server = await ref.read(kmitlTelemedServerProvider.future);
 
     late String visitId;
     try {
-      final response = await server.getServerApiApi().createVisit(
-        headers: {
-          if (token != null) "Authorization": "Bearer $token",
-        },
-      );
+      final response = await server.getVisitApiApi().createVisit();
 
       if (response.statusCode != 200) {
         showErrorMessage("HTTP Error: ${response.statusMessage}");
@@ -148,6 +142,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     } on DioException catch (e) {
       showErrorMessage("Internal Error: ${e.message}");
+      print(e.response?.data);
       return;
     } finally {
       setState(() => _isLoading = false);

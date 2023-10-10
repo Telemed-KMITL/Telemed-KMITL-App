@@ -121,15 +121,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         redirect: (context, state) =>
             state.extra is DocumentReference<WaitingUser> ? null : "/",
         builder: (context, state) {
-          return VideoCallPage(state.extra as DocumentReference<WaitingUser>,
-              key: _videoCallPageKey);
+          return VideoCallPage(
+            state.extra as DocumentReference<WaitingUser>,
+            key: _videoCallPageKey,
+          );
         },
         onExit: (context) async {
           final state = _videoCallPageKey.currentState;
           if (state == null || !state.mounted) {
             return true;
           }
-          return await state.onExit(context);
+          return await state.onLeavingPage(context);
         },
       )
     ],

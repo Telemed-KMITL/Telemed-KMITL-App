@@ -64,7 +64,7 @@ class KmitlTelemedicineDb {
       ...waitingRoom.toJson(),
       ..._currentTimestamp,
     };
-    await pureRoomRef.set(json);
+    await pureRoomRef.update(json);
   }
 
   // WaitingUser
@@ -80,10 +80,7 @@ class KmitlTelemedicineDb {
 
   static Query<WaitingUser> getSortedWaitingUsers(
           DocumentReference<WaitingRoom> roomRef) =>
-      getWaitingUsers(roomRef).orderBy(
-        "updatedAt",
-        descending: true,
-      );
+      getWaitingUsers(roomRef).orderBy("updatedAt");
 
   static DocumentReference<WaitingUser> getWaitingUserRef(
     DocumentReference<WaitingRoom> roomRef,
@@ -95,10 +92,10 @@ class KmitlTelemedicineDb {
     DocumentReference<WaitingUser> userRef,
     WaitingUserStatus status,
   ) async {
-    await _getPureReference(userRef).set({
+    await _getPureReference(userRef).update({
       "status": status.name,
       ..._currentTimestamp,
-    }, SetOptions(merge: true));
+    });
   }
 
   static Future<DocumentReference<WaitingUser>> transferWaitingUser(
@@ -146,6 +143,16 @@ class KmitlTelemedicineDb {
         getUserRef(waitingUser.userId),
         waitingUser.visitId,
       );
+
+  static Future<void> setVisitStatus(
+    DocumentReference<Visit> visitRef,
+    VisitStatus status,
+  ) async {
+    await _getPureReference(visitRef).update({
+      "status": status.name,
+      ..._currentTimestamp,
+    });
+  }
 
   // Comment
 
