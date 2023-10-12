@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
-import 'package:kmitl_telemedicine_staff/comment_view.dart';
+import 'package:kmitl_telemedicine_staff/views/comment_view.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 
 class UserCommentView extends ConsumerStatefulWidget {

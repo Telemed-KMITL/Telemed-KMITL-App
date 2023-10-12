@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
-import 'package:kmitl_telemedicine_staff/transfer_waiting_user_dialog.dart';
-import 'package:kmitl_telemedicine_staff/user_comment_view.dart';
-import 'package:kmitl_telemedicine_staff/video_call_view.dart';
+import 'package:kmitl_telemedicine_staff/views/transfer_waiting_user_dialog.dart';
+import 'package:kmitl_telemedicine_staff/views/user_comment_view.dart';
+import 'package:kmitl_telemedicine_staff/views/video_call_view.dart';
 
 class VideoCallPage extends ConsumerStatefulWidget {
   const VideoCallPage(this.waitingUserRef, {Key? key}) : super(key: key);
