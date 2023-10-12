@@ -126,11 +126,13 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
           getUsernameCallback: _getUsername,
         ),
       ),
+      if (_currentComments.isNotEmpty) _buildVisitHeader(visitRef!.id)
     ]);
   }
 
   Widget _buildCommentHistorySliver() {
-    return PagedSliverList<_PagingControllerKey, DocumentSnapshot<Comment>>(
+    return PagedSliverList<_PagingControllerKey,
+        DocumentSnapshot<Comment>>.separated(
       pagingController: _commentHistoryController!,
       builderDelegate: PagedChildBuilderDelegate(
         itemBuilder: (context, comment, index) {
@@ -141,6 +143,15 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
         },
         noItemsFoundIndicatorBuilder: (context) => Container(),
       ),
+      separatorBuilder: (context, index) {
+        final itemList = _commentHistoryController!.itemList!;
+        final topComment = itemList[index + 1].data()!;
+        final bottomComment = itemList[index].data()!;
+
+        return topComment.visitId != bottomComment.visitId
+            ? _buildVisitHeader(bottomComment.visitId ?? "Visit")
+            : Container();
+      },
     );
   }
 
@@ -191,6 +202,18 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVisitHeader(String visitId) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      color: Colors.grey.shade300,
+      child: Text(
+        visitId,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 20),
       ),
     );
   }
@@ -322,7 +345,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
           snapshot.docs,
           key.getNextKey(
             key.baseQuery.startAfterDocument(snapshot.docs.last),
-            10,
+            20,
           ));
     } else {
       _commentHistoryController!.appendLastPage(snapshot.docs);
