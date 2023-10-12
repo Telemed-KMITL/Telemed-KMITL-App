@@ -17,7 +17,7 @@ class Visit with _$Visit {
     required VisitStatus status,
     required bool isFinished,
     required String jitsiRoomName,
-    @DateTimeConverter() required DateTime? createdAt,
+    @DateTimeConverter() required DateTime createdAt,
   }) = _Visit;
 
   factory Visit.fromJson(Map<String, dynamic> json) => _$VisitFromJson(json);

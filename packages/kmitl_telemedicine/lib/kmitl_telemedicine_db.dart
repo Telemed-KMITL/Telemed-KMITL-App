@@ -20,6 +20,10 @@ class KmitlTelemedicineDb {
 
   static DocumentReference<User> getUserRef(String userId) => users.doc(userId);
 
+  static DocumentReference<User> getUserRefFromVisit(
+          DocumentReference<Visit> visitRef) =>
+      getUserRef(visitRef.parent.parent!.id);
+
   static Future<DocumentReference<User>> createOrUpdateUser(
     String userId,
     User user,
@@ -167,7 +171,22 @@ class KmitlTelemedicineDb {
   static Query<Comment> getSortedComments(
     DocumentReference<Visit> visitRef,
   ) =>
-      visitRef.collection("comments").orderBy("createdAt").withConverter(
+      visitRef
+          .collection("comments")
+          .orderBy("createdAt", descending: true)
+          .withConverter(
+            fromFirestore: (snapshot, _) => Comment.fromJson(snapshot.data()!),
+            toFirestore: (value, _) => value.toJson(),
+          );
+
+  static Query<Comment> getAllComments(
+    DocumentReference<User> userRef,
+  ) =>
+      _dbInstance
+          .collectionGroup("comments")
+          .where("userId", isEqualTo: userRef.id)
+          .orderBy("createdAt", descending: true)
+          .withConverter(
             fromFirestore: (snapshot, _) => Comment.fromJson(snapshot.data()!),
             toFirestore: (value, _) => value.toJson(),
           );
@@ -182,6 +201,8 @@ class KmitlTelemedicineDb {
     await _getPureReference(commentRef).set({
       "text": comment,
       "authorUid": authorUid,
+      "userId": authorUid,
+      "visitId": visitRef.id,
       "createdAt": FieldValue.serverTimestamp(),
     });
   }

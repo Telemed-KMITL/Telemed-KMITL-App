@@ -57,7 +57,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
           }
 
           if (!snapshot.hasData) {
-            const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           _waitingUser ??= snapshot.requireData.data();
@@ -74,8 +74,6 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   }
 
   Widget _buildUi(WaitingUser waitingUser) {
-    final visitRef =
-        KmitlTelemedicineDb.getVisitRefFromWaitingUser(waitingUser);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -119,7 +117,10 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
             ),
           ),
         ),
-        UserCommentView(visitRef),
+        UserCommentView(
+          KmitlTelemedicineDb.getUserRef(waitingUser.userId),
+          visitId: waitingUser.visitId,
+        ),
       ],
     );
   }

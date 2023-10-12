@@ -10,6 +10,8 @@ class Comment with _$Comment {
   const factory Comment({
     required String text,
     required String? authorUid,
+    String? userId,
+    String? visitId,
     @DateTimeConverter() required DateTime createdAt,
   }) = _Comment;
 
