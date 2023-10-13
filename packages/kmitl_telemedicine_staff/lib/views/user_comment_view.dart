@@ -126,32 +126,36 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
           getUsernameCallback: _getUsername,
         ),
       ),
-      if (_currentComments.isNotEmpty) _buildVisitHeader(visitRef!.id)
+      if (_currentComments.isNotEmpty) _buildVisitHeader(visitRef!.id, false),
     ]);
   }
 
   Widget _buildCommentHistorySliver() {
-    return PagedSliverList<_PagingControllerKey,
-        DocumentSnapshot<Comment>>.separated(
+    return PagedSliverList<_PagingControllerKey, DocumentSnapshot<Comment>>(
       pagingController: _commentHistoryController!,
-      builderDelegate: PagedChildBuilderDelegate(
-        itemBuilder: (context, comment, index) {
-          return CommentView(
-            comment.data()!,
+      builderDelegate: PagedChildBuilderDelegate<DocumentSnapshot<Comment>>(
+        itemBuilder: (context, snapshot, index) {
+          final comment = snapshot.data()!;
+          final itemList = _commentHistoryController!.itemList!;
+          final nextComment = itemList.elementAtOrNull(index + 1)?.data()!;
+
+          final commentView = CommentView(
+            comment,
             getUsernameCallback: _getUsername,
           );
-        },
-        noItemsFoundIndicatorBuilder: (context) => Container(),
-      ),
-      separatorBuilder: (context, index) {
-        final itemList = _commentHistoryController!.itemList!;
-        final topComment = itemList[index + 1].data()!;
-        final bottomComment = itemList[index].data()!;
 
-        return topComment.visitId != bottomComment.visitId
-            ? _buildVisitHeader(bottomComment.visitId ?? "Visit")
-            : Container();
-      },
+          return comment.visitId != null &&
+                  comment.visitId != nextComment?.visitId
+              ? Column(
+                  children: [
+                    _buildVisitHeader(comment.visitId!, true),
+                    commentView,
+                  ],
+                )
+              : commentView;
+        },
+        noItemsFoundIndicatorBuilder: (context) => const SizedBox(),
+      ),
     );
   }
 
@@ -206,14 +210,21 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
     );
   }
 
-  Widget _buildVisitHeader(String visitId) {
+  Widget _buildVisitHeader(String visitId, bool isHistory) {
     return Container(
       padding: const EdgeInsets.all(10),
       color: Colors.grey.shade300,
-      child: Text(
-        visitId,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 20),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            visitId,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20),
+          ),
+          if (isHistory) const Icon(Icons.history),
+        ],
       ),
     );
   }
