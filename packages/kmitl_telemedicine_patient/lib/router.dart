@@ -18,7 +18,7 @@ class RouteRefreshNotifier extends ChangeNotifier {
 GlobalKey<NavigatorState> _navRootKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouteRefreshNotifier();
-  ref.listen(firebaseAuthStateProvider, refreshNotifier.listener);
+  ref.listen(firebaseUserProvider, refreshNotifier.listener);
   ref.listen(currentUserProvider, refreshNotifier.listener);
 
   return GoRouter(
@@ -26,7 +26,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: "/",
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      final firebaseUser = ref.read(firebaseAuthStateProvider);
+      final firebaseUser = ref.read(firebaseUserProvider);
       final user = ref.read(currentUserProvider);
 
       if (firebaseUser.isLoading) {
@@ -70,7 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: "/auth",
         redirect: (context, state) {
-          final firebaseUser = ref.read(firebaseAuthStateProvider).valueOrNull;
+          final firebaseUser = ref.read(firebaseUserProvider).valueOrNull;
           return switch (firebaseUser) {
             firebase.User(emailVerified: false, email: final String _) =>
               EmailVerificationPage.path,

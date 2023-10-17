@@ -139,7 +139,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     // Disable UI
     setState(() => _isSending = true);
 
-    final firebaseUser = ref.read(firebaseAuthStateProvider).value!;
+    final firebaseUser = ref.read(firebaseUserProvider).value!;
     try {
       String? hn = form.value["HN"];
       if (hn?.isEmpty ?? false) {

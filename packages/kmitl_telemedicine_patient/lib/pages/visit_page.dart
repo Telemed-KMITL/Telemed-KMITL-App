@@ -111,7 +111,7 @@ class _VisitPageState extends ConsumerState<VisitPage> {
 
   Future<void> _joinMeeting(String roomName) async {
     assert(_isCalling == false);
-    final firebaseUser = ref.read(firebaseAuthStateProvider).requireValue!;
+    final firebaseUser = ref.read(firebaseUserProvider).requireValue!;
     final user = ref.read(currentUserProvider).requireValue!.data()!;
     await _jitsiMeet?.join(
       _buildJitsiOptions(

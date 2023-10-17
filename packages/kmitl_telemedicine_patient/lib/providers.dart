@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart';
 
-final firebaseAuthStateProvider = StreamProvider(
+final firebaseUserProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
 );
 
 final currentUserRefProvider = Provider((ref) {
-  final firebaseUser = ref.watch(firebaseAuthStateProvider);
+  final firebaseUser = ref.watch(firebaseUserProvider);
   final firebaseUid = firebaseUser.valueOrNull?.uid;
   if (firebaseUid == null) {
     return null;
@@ -38,8 +38,7 @@ final userVisitProvider =
 });
 
 final kmitlTelemedServerProvider = FutureProvider((ref) async {
-  final token =
-      await ref.watch(firebaseAuthStateProvider).valueOrNull?.getIdToken();
+  final token = await ref.watch(firebaseUserProvider).valueOrNull?.getIdToken();
   final server = KmitlTelemedicineServer(
     dio: Dio(
       BaseOptions(

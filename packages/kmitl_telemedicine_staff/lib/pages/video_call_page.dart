@@ -221,7 +221,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   }
 
   Future<void> _finishVisiting() async {
-    final server = await ref.read(kmitlTelemedServerProvider.future);
+    final server = await ref.read(kmitlTelemedServerProvider);
     final roomId = KmitlTelemedicineDb.getWaitingRoomRefFromWaitingUser(
             widget.waitingUserRef)
         .id;
