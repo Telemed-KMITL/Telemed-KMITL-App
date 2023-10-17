@@ -260,7 +260,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
   // Comment
 
   Future<void> _sendComment() async {
-    String uid = ref.read(firebaseAuthStateProvider).requireValue!.uid;
+    String uid = ref.read(firebaseUserProvider).requireValue!.uid;
 
     final commentText = _commentInput.text.trim();
     _commentInput.clear();

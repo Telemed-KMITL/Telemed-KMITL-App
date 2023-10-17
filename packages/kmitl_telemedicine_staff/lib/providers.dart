@@ -5,9 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart';
 
-final firebaseAuthStateProvider = StreamProvider(
+final firebaseUserProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
 );
+
+final firebaseTokenProvider = FutureProvider((ref) async {
+  final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
+  if (firebaseUser == null) {
+    return null;
+  } else {
+    return await firebaseUser.getIdTokenResult(true);
+  }
+});
 
 final userProvider = StreamProvider.autoDispose.family(
   (ref, String userId) => KmitlTelemedicineDb.getUserRef(userId).snapshots(),
@@ -36,7 +45,7 @@ final waitingUserListProvider = StreamProvider.autoDispose.family(
 );
 
 final currentUserProvider = StreamProvider((ref) {
-  final firebaseUser = ref.watch(firebaseAuthStateProvider);
+  final firebaseUser = ref.watch(firebaseUserProvider);
   final firebaseUid = firebaseUser.valueOrNull?.uid;
   if (firebaseUid == null) {
     return Stream.value(null);
@@ -45,9 +54,8 @@ final currentUserProvider = StreamProvider((ref) {
   }
 });
 
-final kmitlTelemedServerProvider = FutureProvider((ref) async {
-  final token =
-      await ref.watch(firebaseAuthStateProvider).valueOrNull?.getIdToken();
+final kmitlTelemedServerProvider = Provider((ref) async {
+  final token = ref.watch(firebaseTokenProvider).valueOrNull?.token;
   final server = KmitlTelemedicineServer(
     dio: Dio(
       BaseOptions(

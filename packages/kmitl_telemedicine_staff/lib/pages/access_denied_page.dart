@@ -19,7 +19,7 @@ class _AccessDeniedPageState extends ConsumerState<AccessDeniedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = ref.watch(firebaseAuthStateProvider).valueOrNull;
+    final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
     final userSnapshot = ref.watch(currentUserProvider).valueOrNull;
 
     return Scaffold(

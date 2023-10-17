@@ -14,7 +14,7 @@ class RoomListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final waitingRoomList = ref.watch(waitingRoomListProvider);
-    final firebaseUser = ref.watch(firebaseAuthStateProvider).valueOrNull;
+    final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
