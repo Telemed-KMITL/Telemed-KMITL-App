@@ -8,6 +8,16 @@ final firebaseUserProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
 );
 
+final firebaseTokenProvider = FutureProvider((ref) async {
+  final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
+  if (firebaseUser == null) {
+    return null;
+  } else {
+    print("Refreshing Firebase Token");
+    return await firebaseUser.getIdTokenResult(true);
+  }
+});
+
 final currentUserRefProvider = Provider((ref) {
   final firebaseUser = ref.watch(firebaseUserProvider);
   final firebaseUid = firebaseUser.valueOrNull?.uid;
@@ -38,7 +48,7 @@ final userVisitProvider =
 });
 
 final kmitlTelemedServerProvider = FutureProvider((ref) async {
-  final token = await ref.watch(firebaseUserProvider).valueOrNull?.getIdToken();
+  final token = (await ref.watch(firebaseTokenProvider.future))?.token;
   final server = KmitlTelemedicineServer(
     dio: Dio(
       BaseOptions(
