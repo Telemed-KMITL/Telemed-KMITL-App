@@ -9,10 +9,10 @@ import "package:kmitl_telemedicine_staff/pages/access_denied_page.dart";
 import "package:kmitl_telemedicine_staff/pages/email_verification_page.dart";
 import "package:kmitl_telemedicine_staff/pages/room_list_page.dart";
 import "package:kmitl_telemedicine_staff/pages/signin_page.dart";
+import "package:kmitl_telemedicine_staff/pages/user_management_page.dart";
 import "package:kmitl_telemedicine_staff/pages/video_call_page.dart";
 import "package:kmitl_telemedicine_staff/pages/waiting_room_page.dart";
 import "package:kmitl_telemedicine_staff/providers.dart";
-import "package:pointer_interceptor/pointer_interceptor.dart";
 
 class RouteRefreshNotifier extends ChangeNotifier {
   void listener(_, __) => notifyListeners();
@@ -21,18 +21,17 @@ class RouteRefreshNotifier extends ChangeNotifier {
 GlobalKey<NavigatorState> _navRootKey = GlobalKey();
 GlobalKey<VideoCallPageState> _videoCallPageKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
-  final refreshNotifier = RouteRefreshNotifier();
-  ref.listen(firebaseUserProvider, refreshNotifier.listener);
-  ref.listen(currentUserProvider, refreshNotifier.listener);
+  final routeRefreshNotifier = RouteRefreshNotifier();
+  ref.listen(firebaseUserProvider, routeRefreshNotifier.listener);
+  ref.listen(firebaseTokenProvider, routeRefreshNotifier.listener);
 
   return GoRouter(
     navigatorKey: _navRootKey,
     initialLocation: "/",
-    refreshListenable: refreshNotifier,
+    refreshListenable: routeRefreshNotifier,
     redirect: (context, state) {
       final firebaseUser = ref.read(firebaseUserProvider);
-      final userSnapshot =
-          ref.read(currentUserProvider).unwrapPrevious().valueOrNull;
+      final firebaseToken = ref.read(firebaseTokenProvider);
 
       if (firebaseUser.isLoading) {
         return null;
@@ -52,12 +51,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         return onAuthRoute ? null : "/auth";
       }
 
-      if (userSnapshot != null) {
-        final data = userSnapshot.data();
+      final token = firebaseToken.valueOrNull;
 
-        if (data == null ||
-            ![UserRole.admin, UserRole.doctor, UserRole.nurse]
-                .contains(data.role)) {
+      if (token != null) {
+        final role = token.claims?["role"] as String?;
+
+        if (![UserRole.admin, UserRole.doctor, UserRole.nurse]
+            .map((r) => r.name)
+            .contains(role)) {
           return AccessDeniedPage.path;
         }
 
@@ -133,7 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
           return await state.onLeavingPage(context);
         },
-      )
+      ),
+      GoRoute(
+        path: UserManagementPage.path,
+        builder: (context, state) => UserManagementPage(),
+      ),
     ],
   );
 });

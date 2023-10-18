@@ -14,7 +14,8 @@ final firebaseTokenProvider = FutureProvider((ref) async {
   if (firebaseUser == null) {
     return null;
   } else {
-    return await firebaseUser.getIdTokenResult(true);
+    print("Refreshing Firebase Token");
+    return await firebaseUser.getIdTokenResult(false);
   }
 });
 
@@ -44,7 +45,7 @@ final waitingUserListProvider = StreamProvider.autoDispose.family(
       KmitlTelemedicineDb.getSortedWaitingUsers(roomRef).snapshots(),
 );
 
-final currentUserProvider = StreamProvider((ref) {
+final currentUserProvider = StreamProvider.autoDispose((ref) {
   final firebaseUser = ref.watch(firebaseUserProvider);
   final firebaseUid = firebaseUser.valueOrNull?.uid;
   if (firebaseUid == null) {
@@ -54,8 +55,8 @@ final currentUserProvider = StreamProvider((ref) {
   }
 });
 
-final kmitlTelemedServerProvider = Provider((ref) async {
-  final token = ref.watch(firebaseTokenProvider).valueOrNull?.token;
+final kmitlTelemedServerProvider = FutureProvider((ref) async {
+  final token = (await ref.watch(firebaseTokenProvider.future))?.token;
   final server = KmitlTelemedicineServer(
     dio: Dio(
       BaseOptions(

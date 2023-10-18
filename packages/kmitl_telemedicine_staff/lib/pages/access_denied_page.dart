@@ -20,7 +20,7 @@ class _AccessDeniedPageState extends ConsumerState<AccessDeniedPage> {
   @override
   Widget build(BuildContext context) {
     final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
-    final userSnapshot = ref.watch(currentUserProvider).valueOrNull;
+    final firebaseToken = ref.watch(firebaseTokenProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: Colors.black54,
@@ -45,8 +45,10 @@ class _AccessDeniedPageState extends ConsumerState<AccessDeniedPage> {
                   ),
                 ],
               ),
-              if (userSnapshot != null && userSnapshot.exists)
-                Text("Role: ${userSnapshot.data()?.role.name}"),
+              if (firebaseToken != null)
+                Text(
+                  "Role: ${firebaseToken.claims?["role"] as String? ?? "[undefined]"}",
+                ),
             ],
           ),
           actions: [
