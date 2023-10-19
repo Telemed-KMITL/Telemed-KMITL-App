@@ -280,7 +280,10 @@ class _UserListViewState extends ConsumerState<UserListView> {
           Expanded(
             child: _buildFilterChipList(),
           ),
-          if (ref.watch(firebaseTokenProvider).valueOrNull?.claims?["role"] ==
+          if (ref
+                  .watch(firebaseTokenProvider(false))
+                  .valueOrNull
+                  ?.claims?["role"] ==
               UserRole.admin.name)
             ElevatedButton(
               onPressed: _addUser,

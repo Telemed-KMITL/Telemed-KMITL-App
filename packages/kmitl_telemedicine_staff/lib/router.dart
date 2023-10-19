@@ -23,7 +23,7 @@ GlobalKey<VideoCallPageState> _videoCallPageKey = GlobalKey();
 final routerProvider = Provider<GoRouter>((ref) {
   final routeRefreshNotifier = RouteRefreshNotifier();
   ref.listen(firebaseUserProvider, routeRefreshNotifier.listener);
-  ref.listen(firebaseTokenProvider, routeRefreshNotifier.listener);
+  ref.listen(firebaseTokenProvider(false), routeRefreshNotifier.listener);
 
   return GoRouter(
     navigatorKey: _navRootKey,
@@ -31,7 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: routeRefreshNotifier,
     redirect: (context, state) {
       final firebaseUser = ref.read(firebaseUserProvider);
-      final firebaseToken = ref.read(firebaseTokenProvider);
+      final firebaseToken = ref.read(firebaseTokenProvider(false));
 
       if (firebaseUser.isLoading) {
         return null;
