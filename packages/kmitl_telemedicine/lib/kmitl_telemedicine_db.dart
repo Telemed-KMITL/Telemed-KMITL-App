@@ -158,6 +158,22 @@ class KmitlTelemedicineDb {
     });
   }
 
+  static Future<void> finishVisit(
+    DocumentReference<Visit> visitRef,
+    DocumentReference<WaitingUser> waitingUserRef,
+  ) async {
+    final batch = _dbInstance.batch();
+    batch.update(_getPureReference(visitRef), {
+      "isFinished": true,
+      ..._currentTimestamp,
+    });
+    batch.update(_getPureReference(waitingUserRef), {
+      "status": WaitingUserStatus.finished.name,
+      ..._currentTimestamp,
+    });
+    await batch.commit();
+  }
+
   // Comment
 
   static CollectionReference<Comment> getComments(

@@ -128,7 +128,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     late String visitId;
     try {
-      final response = await server.getVisitApiApi().createVisit();
+      final response = await server.getVisitsApi().visitsPost();
 
       if (response.statusCode != 200) {
         showErrorMessage("HTTP Error: ${response.statusMessage}");

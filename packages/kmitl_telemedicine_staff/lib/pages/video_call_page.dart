@@ -221,19 +221,13 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   }
 
   Future<void> _finishVisiting() async {
-    final server = await ref.read(kmitlTelemedServerProvider.future);
-    final roomId = KmitlTelemedicineDb.getWaitingRoomRefFromWaitingUser(
-            widget.waitingUserRef)
-        .id;
-
     try {
-      await server.getVisitApiApi().finishVisit(
-            roomId: roomId,
-            waitingUserId: widget.waitingUserRef.id,
-          );
-      await _exit(_ExitReason.VisitFinished);
-    } on DioException catch (e) {
-      _showErrorMessage(e.response?.data);
+      await KmitlTelemedicineDb.finishVisit(
+        KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
+        widget.waitingUserRef,
+      );
+    } on Exception catch (e) {
+      _showErrorMessage(e.toString());
     }
   }
 

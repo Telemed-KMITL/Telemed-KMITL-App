@@ -6,6 +6,8 @@ import "package:form_builder_validators/form_builder_validators.dart";
 import "package:go_router/go_router.dart";
 import "package:kmitl_telemedicine/kmitl_telemedicine.dart";
 import "package:kmitl_telemedicine_patient/providers.dart";
+import "package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart"
+    show UserRegisterMyselfRequest;
 
 class RegistrationPage extends ConsumerStatefulWidget {
   const RegistrationPage({super.key, this.showCancelButton = true});
@@ -137,9 +139,11 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     final server = await ref.read(kmitlTelemedServerProvider.future);
 
     try {
-      final response = await server.getUserApiApi().registerPatientUser(
-            firstName: (form.value["firstName"] as String).trim(),
-            lastName: (form.value["lastName"] as String).trim(),
+      final response = await server.getUsersApi().usersRegisterMePost(
+            userRegisterMyselfRequest: UserRegisterMyselfRequest(
+              firstName: (form.value["firstName"] as String).trim(),
+              lastName: (form.value["lastName"] as String).trim(),
+            ),
           );
 
       if (response.statusCode != 200) {
