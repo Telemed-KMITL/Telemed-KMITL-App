@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 import 'package:kmitl_telemedicine_staff/utils/user_search_filter.dart';
+import 'package:kmitl_telemedicine_staff/views/create_user_record_dialog.dart';
 import 'package:kmitl_telemedicine_staff/views/user_list_internal_view.dart';
 
 class _AddFilterPopup extends StatefulWidget {
@@ -359,5 +360,13 @@ class _UserListViewState extends ConsumerState<UserListView> {
     });
   }
 
-  Future<void> _addUser() async {}
+  Future<void> _addUser() async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => const CreateUserRecordDialog(),
+    );
+    if (result == true) {
+      _refresh();
+    }
+  }
 }
