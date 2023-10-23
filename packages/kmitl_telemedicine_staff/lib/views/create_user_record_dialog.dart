@@ -303,11 +303,13 @@ class _CreateUserRecordDialogState
       if (!_isExistingUser) {
         // Create new user
         await server.getUsersApi().usersPost(
-                createUserRequest: api.CreateUserRequest(
-              email: _newUserEmail,
-              password: _newUserPassword,
-              user: _userRecord,
-            ));
+              createUserRequest: api.CreateUserRequest(
+                email: _newUserEmail,
+                password: _newUserPassword,
+                user: _userRecord,
+                emailVerified: _isNewUserEmailVerified,
+              ),
+            );
       } else if (_isExistingUserHintUid) {
         // Register existing user by UserID
         await server.getUsersApi().usersRegisterUseridPost(
