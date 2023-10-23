@@ -59,12 +59,12 @@ final kmitlTelemedServerProvider = FutureProvider((ref) async {
         followRedirects: true,
       ),
     ),
-    interceptors: [
-      HeaderMacroInterceptor(
-        "X-Force-Refresh-Token",
-        () => ref.invalidate(firebaseTokenProvider(true)),
-      ),
-    ],
+  );
+  server.dio.interceptors.add(
+    HeaderMacroInterceptor(
+      "X-Force-Refresh-Token",
+      () => ref.invalidate(firebaseTokenProvider(true)),
+    ),
   );
   if (token != null) {
     server.setBearerAuth("FirebaseJwtBarer", token);
