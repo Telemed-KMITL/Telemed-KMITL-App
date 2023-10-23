@@ -49,9 +49,13 @@ class KmitlTelemedicineDb {
 
   static Future<DocumentReference<WaitingRoom>> createWaitingRoom(
       WaitingRoom waitingRoom) async {
-    final ref = waitingRooms.doc();
-    await updateWaitingRoom(ref, waitingRoom);
-    return ref;
+    final roomRef = waitingRooms.doc();
+    final json = {
+      ...waitingRoom.toJson(),
+      ..._currentTimestamp,
+    };
+    await _getPureReference(roomRef).set(json);
+    return roomRef;
   }
 
   static DocumentReference<WaitingRoom> getWaitingRoomRef(String id) =>
