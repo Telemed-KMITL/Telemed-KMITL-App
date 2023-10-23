@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_validator/form_validator.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart'
     as api;
 import 'package:kmitl_telemedicine_staff/providers.dart';
+import 'package:kmitl_telemedicine_staff/views/form_dialog.dart';
 
 class CreateUserRecordDialog extends ConsumerStatefulWidget {
   const CreateUserRecordDialog({super.key});
@@ -17,10 +17,6 @@ class CreateUserRecordDialog extends ConsumerStatefulWidget {
 
 class _CreateUserRecordDialogState
     extends ConsumerState<CreateUserRecordDialog> {
-  static const double kActionWidgetHeight = 40;
-
-  final _formKey = GlobalKey<FormState>();
-
   bool _isExistingUser = true;
   bool _isExistingUserHintUid = false;
   String _existingUserHint = ""; // UserID or Email
@@ -28,11 +24,6 @@ class _CreateUserRecordDialogState
   bool _isNewUserEmailVerified = false;
   String _newUserPassword = "";
   late api.User _userRecord;
-
-  final StateProvider<bool> _isSubmittingProvider =
-      StateProvider((ref) => false);
-  final StateProvider<String> _submitErrorTextProvider =
-      StateProvider((ref) => "");
 
   StringValidationCallback get _userIdValidator =>
       ValidationBuilder().required().maxLength(128).build();
@@ -52,112 +43,49 @@ class _CreateUserRecordDialogState
 
   @override
   Widget build(BuildContext context) {
-    final isSubmitting = ref.watch(_isSubmittingProvider);
-    final submitErrorText = ref.watch(_submitErrorTextProvider);
-    return AlertDialog(
+    return FormDialog(
       title: const Text("Create User (Record)"),
-      contentPadding: const EdgeInsets.only(top: 20),
-      content: SizedBox(
-        width: 500,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Flexible(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      bottom: 24,
-                    ),
-                    child: _buildBody(),
-                  ),
-                ),
-              ),
-            ),
-            if (submitErrorText.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                color: Theme.of(context).colorScheme.errorContainer,
-                alignment: Alignment.center,
-                child: Text(
-                  submitErrorText,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: isSubmitting ? null : () => context.pop(false),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: isSubmitting
-              ? null
-              : () async {
-                  if (await _submit() && context.mounted) {
-                    context.pop(true);
-                  }
-                },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Create"),
-              if (ref.watch(_isSubmittingProvider)) ...const [
-                SizedBox(width: 8),
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ].map((w) => SizedBox(height: kActionWidgetHeight, child: w)).toList(),
+      content: _buildBody(),
+      onSubmit: _submit,
+      submitButtonText: "Create",
     );
   }
 
   Widget _buildBody() {
-    return Column(
-      children: [
-        // [ Existing User | New User ]
-        ToggleButtons(
-          isSelected: [
-            _isExistingUser,
-            !_isExistingUser,
-          ],
-          onPressed: (index) => setState(() {
-            _isExistingUser = index == 0;
-            _resetUserFieldValues();
-          }),
-          constraints: const BoxConstraints(
-            minWidth: 110.0,
-            minHeight: 40.0,
+    return SizedBox(
+      width: 450,
+      child: Column(
+        children: [
+          // [ Existing User | New User ]
+          ToggleButtons(
+            isSelected: [
+              _isExistingUser,
+              !_isExistingUser,
+            ],
+            onPressed: (index) => setState(() {
+              _isExistingUser = index == 0;
+              _resetUserFieldValues();
+            }),
+            constraints: const BoxConstraints(
+              minWidth: 110.0,
+              minHeight: 40.0,
+            ),
+            children: const [
+              Text("Existing User"),
+              Text("New User"),
+            ],
           ),
-          children: const [
-            Text("Existing User"),
-            Text("New User"),
-          ],
-        ),
-        const SizedBox(height: 8),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: _isExistingUser
-              ? _buildExistingUserFields()
-              : _buildNewUserFields(),
-        ),
-        const Divider(thickness: 2, height: 40),
-        _buildUserRecordFields(),
-      ],
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _isExistingUser
+                ? _buildExistingUserFields()
+                : _buildNewUserFields(),
+          ),
+          const Divider(thickness: 2, height: 40),
+          _buildUserRecordFields(),
+        ],
+      ),
     );
   }
 
@@ -368,17 +296,7 @@ class _CreateUserRecordDialogState
         );
       });
 
-  Future<bool> _submit() async {
-    final form = _formKey.currentState!;
-
-    if (!form.validate()) {
-      return false;
-    }
-    form.save();
-
-    ref.read(_isSubmittingProvider.notifier).state = true;
-    ref.read(_submitErrorTextProvider.notifier).state = "";
-
+  Future<String?> _submit() async {
     try {
       final server = await ref.read(kmitlTelemedServerProvider.future);
 
@@ -406,19 +324,9 @@ class _CreateUserRecordDialogState
     } on DioException catch (e) {
       final response = e.response;
       final data = response?.data;
-      if (data is String && data.isNotEmpty) {
-        ref.read(_submitErrorTextProvider.notifier).state = data;
-      } else {
-        ref.read(_submitErrorTextProvider.notifier).state = "Network error";
-      }
-      return false;
-    } on Exception {
-      ref.read(_submitErrorTextProvider.notifier).state = "Unknown error";
-      return false;
-    } finally {
-      ref.read(_isSubmittingProvider.notifier).state = false;
+      return data is String && data.isNotEmpty ? data : "Network error";
     }
 
-    return true;
+    return null;
   }
 }
