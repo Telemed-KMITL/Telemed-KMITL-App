@@ -15,6 +15,7 @@ class RoomListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final waitingRoomList = ref.watch(waitingRoomListProvider);
     final firebaseToken = ref.watch(firebaseTokenProvider(false)).valueOrNull;
+    final isAdmin = firebaseToken?.claims?["role"] == "admin";
 
     return Scaffold(
       appBar: AppBar(
@@ -22,7 +23,7 @@ class RoomListPage extends ConsumerWidget {
         centerTitle: true,
       ),
       body: waitingRoomList.when(
-        data: (data) => _buildList(context, data),
+        data: (data) => _buildList(context, data, isAdmin),
         error: (error, stackTrace) => Center(
           child: Text(error.toString()),
         ),
@@ -30,36 +31,102 @@ class RoomListPage extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
       ),
-      floatingActionButton:
-          firebaseToken?.claims?["role"] == "admin" && waitingRoomList.hasValue
-              ? FloatingActionButton(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (context) => const CreateWaitingRoomDialog(),
-                  ),
-                  child: const Icon(Icons.add),
-                )
-              : null,
+      floatingActionButton: isAdmin && waitingRoomList.hasValue
+          ? FloatingActionButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (context) => const CreateWaitingRoomDialog(),
+              ),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
-  Widget _buildList(BuildContext context, QuerySnapshot<WaitingRoom> snapshot) {
+  Widget _buildList(
+      BuildContext context, QuerySnapshot<WaitingRoom> snapshot, bool isAdmin) {
     final docs = snapshot.docs;
     return ListView(
       children: docs.map((e) {
-        final data = e.data();
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => context.go(RoomListPage.path, extra: e.reference),
-            child: ListTile(
-              title: Text(data.name),
-              subtitle: Text("ID: ${e.id}"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-            ),
-          ),
-        );
+        return _buildRoomTile(context, e, isAdmin);
       }).toList(),
     );
+  }
+
+  Widget _buildRoomTile(BuildContext context,
+      QueryDocumentSnapshot<WaitingRoom> snapshot, bool isAdmin) {
+    final room = snapshot.data();
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.go(RoomListPage.path, extra: snapshot.reference),
+        child: ListTile(
+          title: Text(room.name),
+          subtitle: room.description.isNotEmpty ? Text(room.description) : null,
+          trailing: isAdmin
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () => _editRoom(context, snapshot),
+                      icon: const Icon(Icons.edit),
+                    ),
+                    IconButton(
+                      onPressed: () => _deleteRoom(context, snapshot),
+                      icon: const Icon(Icons.delete),
+                    ),
+                    const VerticalDivider(
+                      width: 20,
+                      thickness: 1,
+                    ),
+                    const Icon(Icons.arrow_forward_ios),
+                  ],
+                )
+              : const Icon(Icons.arrow_forward_ios),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoomDeleteDialog(BuildContext context, WaitingRoom room) {
+    return AlertDialog(
+      title: const Text("Delete this room?"),
+      content: ListTile(
+        title: Text(room.name),
+        subtitle: room.description.isNotEmpty ? Text(room.description) : null,
+      ),
+      actions: [
+        TextButton(
+          child: const Text("Cancel"),
+          onPressed: () => context.pop(false),
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.delete),
+          label: const Text("Delete"),
+          onPressed: () => context.pop(true),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editRoom(
+      BuildContext context, QueryDocumentSnapshot<WaitingRoom> snapshot) async {
+    await showDialog(
+      context: context,
+      builder: (context) => CreateWaitingRoomDialog(
+        existingRoom: snapshot,
+      ),
+    );
+  }
+
+  Future<void> _deleteRoom(
+      BuildContext context, QueryDocumentSnapshot<WaitingRoom> snapshot) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => _buildRoomDeleteDialog(context, snapshot.data()),
+    );
+    if (result == true) {
+      await snapshot.reference.delete();
+    }
   }
 }

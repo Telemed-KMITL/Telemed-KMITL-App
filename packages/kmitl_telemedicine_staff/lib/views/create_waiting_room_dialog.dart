@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_validator/form_validator.dart';
@@ -5,7 +6,9 @@ import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_staff/views/form_dialog.dart';
 
 class CreateWaitingRoomDialog extends ConsumerStatefulWidget {
-  const CreateWaitingRoomDialog({super.key});
+  const CreateWaitingRoomDialog({this.existingRoom, super.key});
+
+  final DocumentSnapshot<WaitingRoom>? existingRoom;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -14,16 +17,30 @@ class CreateWaitingRoomDialog extends ConsumerStatefulWidget {
 
 class _CreateWaitingRoomDialogState
     extends ConsumerState<CreateWaitingRoomDialog> {
+  bool get isEditing => widget.existingRoom != null;
+  WaitingRoom? get existingRoom => widget.existingRoom?.data();
+  DocumentReference<WaitingRoom>? get existingRoomRef =>
+      widget.existingRoom?.reference;
+
   String _roomName = "";
   String _roomDescription = "";
 
   @override
+  void initState() {
+    _roomName = existingRoom?.name ?? "";
+    _roomDescription = existingRoom?.description ?? "";
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FormDialog(
-      title: const Text("Create Waiting Room"),
+      title: isEditing
+          ? const Text("Edit Waiting Room")
+          : const Text("Create Waiting Room"),
       content: _buildContent(),
       onSubmit: _submit,
-      submitButtonText: "Create",
+      submitButtonText: isEditing ? "Update" : "Create",
     );
   }
 
@@ -54,11 +71,16 @@ class _CreateWaitingRoomDialogState
   }
 
   Future<String?> _submit() async {
-    await KmitlTelemedicineDb.createWaitingRoom(WaitingRoom(
+    final room = WaitingRoom(
       name: _roomName,
       description: _roomDescription,
       updatedAt: DateTime.now(),
-    ));
+    );
+    if (isEditing) {
+      await KmitlTelemedicineDb.updateWaitingRoom(existingRoomRef!, room);
+    } else {
+      await KmitlTelemedicineDb.createWaitingRoom(room);
+    }
     return null;
   }
 }
