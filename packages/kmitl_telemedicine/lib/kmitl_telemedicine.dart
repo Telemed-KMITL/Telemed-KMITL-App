@@ -6,3 +6,4 @@ export 'user.dart';
 export 'visit.dart';
 export 'waiting_room.dart';
 export 'waiting_user.dart';
+export 'assigned_staff.dart';

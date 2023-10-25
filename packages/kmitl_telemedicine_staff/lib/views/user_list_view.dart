@@ -236,15 +236,20 @@ class _UserListViewState extends ConsumerState<UserListView> {
             offset: const Offset(0, 2),
           ),
         ],
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(),
-          _buildInternalView(),
-        ],
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(),
+            _buildInternalView(),
+          ],
+        ),
       ),
     );
   }

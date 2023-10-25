@@ -75,6 +75,35 @@ class KmitlTelemedicineDb {
     await pureRoomRef.update(json);
   }
 
+  static Future<void> assignStaffToWaitingRoom(
+      DocumentReference<WaitingRoom> roomRef,
+      DocumentSnapshot<User> staffUserSnapshot) async {
+    final staffUser = staffUserSnapshot.data()!;
+    assert(staffUser.role == UserRole.doctor ||
+        staffUser.role == UserRole.nurse ||
+        staffUser.role == UserRole.admin);
+
+    final assignedStaff = AssignedStaff(
+      userId: staffUserSnapshot.id,
+      displayName: staffUser.getDisplayName(),
+      role: staffUser.role,
+    );
+
+    await _getPureReference(roomRef).set({
+      "assignedStaffList": FieldValue.arrayUnion([assignedStaff.toJson()]),
+      ..._currentTimestamp,
+    }, SetOptions(merge: true));
+  }
+
+  static Future<void> unassignStaffFromWaitingRoom(
+      DocumentReference<WaitingRoom> roomRef,
+      AssignedStaff assignedStaff) async {
+    await _getPureReference(roomRef).set({
+      "assignedStaffList": FieldValue.arrayRemove([assignedStaff.toJson()]),
+      ..._currentTimestamp,
+    }, SetOptions(merge: true));
+  }
+
   // WaitingUser
 
   static CollectionReference<WaitingUser> getWaitingUsers(

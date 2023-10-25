@@ -240,6 +240,7 @@ class _CreateUserRecordDialogState
         ),
         // [HN]
         TextFormField(
+          initialValue: _userRecord.HN,
           decoration: const InputDecoration(
             labelText: "HN",
           ),
@@ -247,7 +248,7 @@ class _CreateUserRecordDialogState
             firstName: _userRecord.firstName,
             lastName: _userRecord.lastName,
             role: _userRecord.role,
-            HN: value,
+            HN: value != "" ? value : null,
             status: _userRecord.status,
           ),
         ),

@@ -48,7 +48,16 @@ class _CreateWaitingRoomDialogState
     return SizedBox(
       width: 400,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isEditing)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                "Room ID: ${existingRoomRef?.id}",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
           TextFormField(
             initialValue: _roomName,
             decoration: const InputDecoration(
@@ -63,6 +72,7 @@ class _CreateWaitingRoomDialogState
             decoration: const InputDecoration(
               labelText: "Room Description (Optional)",
             ),
+            maxLines: 3,
             onSaved: (value) => _roomDescription = value ?? "",
           ),
         ],
