@@ -10,11 +10,20 @@ import "package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart"
     show UserRegisterMyselfRequest;
 
 class RegistrationPage extends ConsumerStatefulWidget {
-  const RegistrationPage({super.key, this.showCancelButton = true});
+  const RegistrationPage({
+    super.key,
+    this.hasPreviousPage = false,
+  });
 
-  static const String path = "/register";
+  final bool hasPreviousPage;
 
-  final bool showCancelButton;
+  static const String route = "register";
+  static const String path = "/auth/register";
+
+  static Future<bool> needsToShow(WidgetRef ref) async {
+    final user = await ref.read(currentUserProvider.future);
+    return !(user?.exists ?? false);
+  }
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -32,8 +41,27 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text("Registration"),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey.shade900,
+        elevation: 0,
+        leadingWidth: 120,
+        leading: widget.hasPreviousPage
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => context.go("/auth?signout=true"),
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: "Sign out",
+                ),
+              )
+            : TextButton.icon(
+                onPressed: () => context.go("/auth?signout=true"),
+                icon: const Icon(Icons.logout),
+                label: const Text("Sign out"),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade900,
+                ),
+              ),
       ),
       body: user.when(
         skipError: true,
@@ -49,62 +77,35 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   }
 
   Widget _buildForm() {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        FormBuilder(
-          key: _formKey,
-          onChanged: () => setState(() {}),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: _buildFormItems()
-                  .map(
-                    (w) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: w,
-                    ),
-                  )
-                  .toList(),
+    return FormBuilder(
+      key: _formKey,
+      onChanged: () => setState(() {}),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ..._buildFormItems().map(
+              (w) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: w,
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                textStyle: const TextStyle(fontSize: 20),
+              ),
+              onPressed:
+                  !_isSending && (_formKey.currentState?.isDirty ?? false)
+                      ? () => _onSubmit(_formKey.currentState!)
+                      : null,
+              child: const Text("Register"),
+            ),
+          ],
         ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  onPressed:
-                      !_isSending && (_formKey.currentState?.isDirty ?? false)
-                          ? () => _onSubmit(_formKey.currentState!)
-                          : null,
-                  child: const Text("Register"),
-                ),
-                if (context.canPop() && widget.showCancelButton) ...[
-                  const SizedBox(height: 2),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      textStyle: const TextStyle(fontSize: 20),
-                    ),
-                    // Close this page
-                    onPressed: () => context.pop(false),
-                    child: const Text("Cancel"),
-                  ),
-                ]
-              ],
-            ),
-          ),
-        )
-      ],
+      ),
     );
   }
 
@@ -113,14 +114,14 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       FormBuilderTextField(
         name: "firstName",
         initialValue: _user?.firstName,
-        decoration: const InputDecoration(labelText: "First name (Required)"),
+        decoration: const InputDecoration(labelText: "First name"),
         keyboardType: TextInputType.name,
         validator: FormBuilderValidators.required(),
       ),
       FormBuilderTextField(
         name: "lastName",
         initialValue: _user?.lastName,
-        decoration: const InputDecoration(labelText: "Last name (Required)"),
+        decoration: const InputDecoration(labelText: "Last name"),
         keyboardType: TextInputType.name,
         validator: FormBuilderValidators.required(),
       ),
@@ -150,8 +151,6 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         showErrorMessage("HTTP Error: ${response.statusMessage}");
         return;
       }
-
-      ref.invalidate(firebaseTokenProvider);
     } on DioException catch (e) {
       showErrorMessage("Internal Error: ${e.message}");
       return;
@@ -160,13 +159,8 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       setState(() => _isSending = false);
     }
 
-    // Close this page
     if (context.mounted) {
-      if (context.canPop()) {
-        context.pop(true);
-      } else {
-        context.go("/");
-      }
+      context.go("/");
     }
   }
 

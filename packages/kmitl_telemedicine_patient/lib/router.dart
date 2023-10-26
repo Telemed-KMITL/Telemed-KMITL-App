@@ -1,14 +1,20 @@
-import "package:firebase_auth/firebase_auth.dart" as firebase;
+import "package:firebase_auth/firebase_auth.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import 'package:kmitl_telemedicine_patient/pages/auth/welcome_page.dart';
 
-import "package:kmitl_telemedicine_patient/pages/email_verification_page.dart";
+import 'package:kmitl_telemedicine_patient/pages/auth/email_verification_page.dart';
+import 'package:kmitl_telemedicine_patient/pages/auth/registration_page.dart';
+import 'package:kmitl_telemedicine_patient/pages/auth/signin_page.dart';
+import 'package:kmitl_telemedicine_patient/pages/auth/signup_page.dart';
 import "package:kmitl_telemedicine_patient/pages/home_page.dart";
-import "package:kmitl_telemedicine_patient/pages/registration_page.dart";
-import "package:kmitl_telemedicine_patient/pages/signin_page.dart";
 import "package:kmitl_telemedicine_patient/pages/visit_page.dart";
 import "package:kmitl_telemedicine_patient/providers.dart";
+
+import "transition_pages/fade_transition_page.dart";
+import "transition_pages/slide_transition_page.dart";
 
 class RouteRefreshNotifier extends ChangeNotifier {
   void listener(_, __) => notifyListeners();
@@ -21,41 +27,43 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen(currentUserProvider, refreshNotifier.listener);
 
   return GoRouter(
+    debugLogDiagnostics: kDebugMode,
     navigatorKey: _navRootKey,
     initialLocation: "/",
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final firebaseUser = ref.read(firebaseUserProvider);
-      final user = ref.read(currentUserProvider);
+      final user = ref.read(currentUserProvider).valueOrNull;
+      final onAuthRoute = state.matchedLocation.startsWith("/auth");
 
-      if (firebaseUser.isLoading) {
+      if (onAuthRoute) {
         return null;
       }
 
-      final isFirebaseUserLoggedIn = switch (firebaseUser.valueOrNull) {
-        null => false,
-        firebase.User(emailVerified: false, email: final String _) => false,
-        _ => true,
-      };
+      if (firebaseUser.isLoading ||
+          firebaseUser.hasError ||
+          !firebaseUser.hasValue) {
+        return null;
+      }
 
-      final atRootPage = state.matchedLocation == "/";
-      final onAuthRoute = state.matchedLocation.startsWith("/auth");
-
-      if (!isFirebaseUserLoggedIn) {
+      if (firebaseUser.requireValue == null) {
         return onAuthRoute ? null : "/auth";
       }
 
-      if (!user.hasValue || user.requireValue == null) {
+      if (user == null) {
         return null;
       }
 
-      if (!user.requireValue!.exists) {
+      if (!user.exists) {
         return state.matchedLocation == RegistrationPage.path
             ? null
             : RegistrationPage.path;
       }
 
-      if (atRootPage || onAuthRoute) {
+      if (onAuthRoute ||
+          state.matchedLocation == "/" ||
+          state.matchedLocation == EmailVerificationPage.path ||
+          state.matchedLocation == RegistrationPage.path) {
         return HomePage.path;
       }
 
@@ -64,30 +72,65 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: "/",
-        builder: (context, state) => Container(),
+        pageBuilder: (context, state) => FadeTransitionPage(
+          key: state.pageKey,
+          child: const SizedBox(),
+        ),
       ),
       GoRoute(
         path: "/auth",
-        redirect: (context, state) {
-          final firebaseUser = ref.read(firebaseUserProvider).valueOrNull;
-          return switch (firebaseUser) {
-            firebase.User(emailVerified: false, email: final String _) =>
-              EmailVerificationPage.path,
-            _ => SigninPage.path,
-          };
+        redirect: (context, state) async {
+          if (state.fullPath == "/auth") {
+            if (state.uri.queryParameters.entries.any(
+                (e) => e.key == "signout" && e.value.toLowerCase() == "true")) {
+              await FirebaseAuth.instance.signOut();
+            }
+          }
+          return null;
         },
-      ),
-      GoRoute(
-        path: SigninPage.path,
-        builder: (context, state) => const SigninPage(),
-      ),
-      GoRoute(
-        path: EmailVerificationPage.path,
-        builder: (context, state) => const EmailVerificationPage(),
-      ),
-      GoRoute(
-        path: RegistrationPage.path,
-        builder: (context, state) => const RegistrationPage(),
+        builder: (context, state) => WelcomePage(),
+        routes: [
+          GoRoute(
+            path: SigninPage.route,
+            pageBuilder: (context, state) => SlideTransitionPage(
+              key: state.pageKey,
+              child: const SigninPage(),
+            ),
+          ),
+          GoRoute(
+            path: SignupPage.route,
+            pageBuilder: (context, state) => SlideTransitionPage(
+              key: state.pageKey,
+              child: const SignupPage(),
+            ),
+          ),
+          GoRoute(
+            path: EmailVerificationPage.route,
+            redirect: (context, state) async {
+              final user = await ref.read(firebaseUserProvider.future);
+              return user == null ? "/auth" : null;
+            },
+            pageBuilder: (context, state) => SlideTransitionPage(
+              key: state.pageKey,
+              child: EmailVerificationPage(
+                hasPreviousPage: (state.extra is bool) && (state.extra as bool),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: RegistrationPage.route,
+            redirect: (context, state) async {
+              final user = await ref.read(firebaseUserProvider.future);
+              return user == null ? "/auth" : null;
+            },
+            pageBuilder: (context, state) => SlideTransitionPage(
+              key: state.pageKey,
+              child: RegistrationPage(
+                hasPreviousPage: (state.extra is bool) && (state.extra as bool),
+              ),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: HomePage.path,

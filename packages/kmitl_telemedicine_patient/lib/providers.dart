@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine/utils/header_macro_interceptor.dart';
-import 'package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart';
+import 'package:kmitl_telemedicine_server/kmitl_telemedicine_server.dart'
+    as server;
 
 final firebaseUserProvider = StreamProvider(
   (ref) => firebase.FirebaseAuth.instance.authStateChanges(),
@@ -50,7 +51,7 @@ final userVisitProvider =
 
 final kmitlTelemedServerProvider = FutureProvider((ref) async {
   final token = (await ref.watch(firebaseTokenProvider(false).future))?.token;
-  final server = KmitlTelemedicineServer(
+  final sv = server.KmitlTelemedicineServer(
     dio: Dio(
       BaseOptions(
         baseUrl: "https://blockchain.telemed.kmitl.ac.th/api",
@@ -59,15 +60,14 @@ final kmitlTelemedServerProvider = FutureProvider((ref) async {
         followRedirects: true,
       ),
     ),
-  );
-  server.dio.interceptors.add(
-    HeaderMacroInterceptor(
-      "X-Force-Refresh-Token",
-      () => ref.invalidate(firebaseTokenProvider(true)),
-    ),
-  );
+  )..dio.interceptors.add(
+        HeaderMacroInterceptor(
+          "X-Force-Refresh-Token",
+          () => ref.invalidate(firebaseTokenProvider(true)),
+        ),
+      );
   if (token != null) {
-    server.setBearerAuth("FirebaseJwtBarer", token);
+    sv.setBearerAuth("FirebaseJwtBarer", token);
   }
-  return server;
+  return sv;
 });
