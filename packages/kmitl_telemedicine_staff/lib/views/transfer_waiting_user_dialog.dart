@@ -20,7 +20,7 @@ class TransferWaitingUserDialog extends ConsumerWidget {
 
   final DocumentReference<WaitingUser>? waitingUser;
   final DocumentReference<WaitingRoom>? currentRoom;
-  void Function(DocumentReference<WaitingRoom>)? onSelected;
+  final void Function(DocumentReference<WaitingRoom>)? onSelected;
 
   late final DocumentReference<WaitingRoom>? _currentRoomRef;
 

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,10 +21,10 @@ class VideoCallPage extends ConsumerStatefulWidget {
 }
 
 enum _ExitReason {
-  Undefined,
-  UserTransfer,
-  UserHangup,
-  VisitFinished,
+  undefined,
+  userTransfer,
+  userHangup,
+  visitFinished,
 }
 
 class VideoCallPageState extends ConsumerState<VideoCallPage> {
@@ -33,7 +32,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
   VideoCallViewState get _videoCall => _videoCallKey.currentState!;
   WaitingUser? _waitingUser;
-  _ExitReason _exitReason = _ExitReason.Undefined;
+  _ExitReason _exitReason = _ExitReason.undefined;
   bool _finalized = false;
 
   @override
@@ -136,7 +135,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         padding: const EdgeInsets.all(0),
         backgroundColor: Colors.red,
       ),
-      onPressed: () => _exit(_ExitReason.UserHangup),
+      onPressed: () => _exit(_ExitReason.userHangup),
       child: const Icon(
         Icons.call_end,
         size: 40,
@@ -261,7 +260,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
     await KmitlTelemedicineDb.transferWaitingUser(
         widget.waitingUserRef, destination);
-    await _exit(_ExitReason.UserTransfer);
+    await _exit(_ExitReason.userTransfer);
   }
 
   Future<void> _exit(_ExitReason reason) async {
@@ -297,7 +296,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       builder: _buildLeavePageDialog,
     );
     if (result ?? false) {
-      await _exit(_ExitReason.UserHangup);
+      await _exit(_ExitReason.userHangup);
     }
     return false;
   }
@@ -310,10 +309,10 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
 
     if (_waitingUser != null) {
       final updatingStateRequired = switch (_exitReason) {
-        _ExitReason.Undefined => true,
-        _ExitReason.UserTransfer => false,
-        _ExitReason.UserHangup => true,
-        _ExitReason.VisitFinished => false,
+        _ExitReason.undefined => true,
+        _ExitReason.userTransfer => false,
+        _ExitReason.userHangup => true,
+        _ExitReason.visitFinished => false,
       };
       if (updatingStateRequired) {
         await KmitlTelemedicineDb.setWaitingUserStatus(

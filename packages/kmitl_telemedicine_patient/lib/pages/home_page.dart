@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
-import 'package:kmitl_telemedicine_patient/pages/visit_page.dart';
 import 'package:kmitl_telemedicine_patient/providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -81,12 +80,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  const Text("Waiting Time (Estimated):"),
-                  const Text("10 min."),
-                ],
-              ),
               ElevatedButton(
                 onPressed:
                     user == null || _isLoading ? null : () => _onVisit(user.id),
@@ -135,14 +128,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         return;
       }
 
-      visitId = response.data!.visitId!;
+      visitId = response.data!.visitId;
 
       if (context.mounted) {
         context.push("/visit/$visitId");
       }
     } on DioException catch (e) {
       showErrorMessage("Internal Error: ${e.message}");
-      print(e.response?.data);
       return;
     } finally {
       setState(() => _isLoading = false);

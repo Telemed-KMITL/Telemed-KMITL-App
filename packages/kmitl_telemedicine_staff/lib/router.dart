@@ -137,7 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: UserManagementPage.path,
-        builder: (context, state) => UserManagementPage(),
+        builder: (context, state) => const UserManagementPage(),
       ),
     ],
   );

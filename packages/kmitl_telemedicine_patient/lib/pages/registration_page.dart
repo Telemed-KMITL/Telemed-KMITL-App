@@ -154,7 +154,6 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       ref.invalidate(firebaseTokenProvider);
     } on DioException catch (e) {
       showErrorMessage("Internal Error: ${e.message}");
-      print(e.response?.data);
       return;
     } finally {
       // Enable UI

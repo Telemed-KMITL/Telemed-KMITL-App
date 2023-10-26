@@ -223,7 +223,7 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
               ),
               DataCell(Text(data.role.name)),
               DataCell(Text(data.getDisplayName())),
-              DataCell(Text(data.HN ?? "null")),
+              DataCell(Text(data.hn ?? "null")),
               DataCell(Text(data.status.name)),
               DataCell(
                 Text(data.updatedAt?.toShortTimestampString() ?? "null"),

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import "dart:html" as html;
 import "dart:ui_web" as ui;
 
@@ -120,18 +122,15 @@ class VideoCallViewState extends State<VideoCallView> {
       );
 
   void _readyToCloseCallback(_) {
-    print("Event: readyToClose");
     widget.readyToClose?.call();
   }
 
   void _videoConferenceJoinedCallback(_) {
-    print("Event: videoConferenceJoined");
     callingState.value = true;
     widget.videoConferenceJoined?.call();
   }
 
   void _videoConferenceLeftCallback(_) {
-    print("Event: videoConferenceLeft");
     callingState.value = false;
     widget.videoConferenceLeft?.call();
   }

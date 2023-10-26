@@ -18,7 +18,7 @@ class User with _$User {
     required String lastName,
     @JsonKey(unknownEnumValue: UserRole.unknown) required UserRole role,
     @JsonKey(unknownEnumValue: UserStatus.unknown) required UserStatus status,
-    required String? HN,
+    @JsonKey(name: "HN") required String? hn,
     @DateTimeConverter() required DateTime? updatedAt,
   }) = _User;
 
