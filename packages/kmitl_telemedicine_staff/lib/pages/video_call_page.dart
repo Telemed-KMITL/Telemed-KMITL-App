@@ -231,7 +231,9 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       );
     } on Exception catch (e) {
       _showErrorMessage(e.toString());
+      return;
     }
+    _exit(_ExitReason.visitFinished);
   }
 
   Future<void> _transferUser() async {
