@@ -6,6 +6,7 @@ import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine/utils/custom_filters.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 import 'package:kmitl_telemedicine_staff/views/create_waiting_room_dialog.dart';
+import 'package:kmitl_telemedicine_staff/views/page_drawer.dart';
 
 class RoomListPage extends ConsumerStatefulWidget {
   const RoomListPage({super.key});
@@ -17,9 +18,11 @@ class RoomListPage extends ConsumerStatefulWidget {
 }
 
 class _RoomListPageState extends ConsumerState<RoomListPage> {
-  final _isAdminProvider = Provider((ref) =>
-      ref.watch(firebaseTokenProvider(false)).valueOrNull?.claims?["role"] ==
-      "admin");
+  final _isAdminProvider = Provider(
+    (ref) =>
+        ref.watch(firebaseTokenProvider(false)).valueOrNull?.claims?["role"] ==
+        "admin",
+  );
   final _assignStaffTargetProvider =
       StateProvider<DocumentReference<WaitingRoom>?>((ref) => null);
 
@@ -34,6 +37,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
     final waitingRoomList = ref.watch(waitingRoomListProvider);
 
     return Scaffold(
+      drawer: PageDrawer(),
       appBar: AppBar(
         title: const Text("TeleMed"),
         centerTitle: true,
@@ -54,6 +58,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
                     context: context,
                     builder: (context) => const CreateWaitingRoomDialog(),
                   ),
+                  tooltip: "Add WaitingRoom",
                   child: const Icon(Icons.add),
                 )
               : null,
@@ -62,9 +67,11 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
 
   Widget _buildList(QuerySnapshot<WaitingRoom> snapshot) {
     final docs = snapshot.docs;
-    return ListView(
+    return ListView.separated(
       padding: const EdgeInsets.all(20),
-      children: docs.map((e) => _buildRoomTile(e)).toList(),
+      itemCount: docs.length,
+      itemBuilder: (context, index) => _buildRoomTile(docs.elementAt(index)),
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
     );
   }
 
@@ -90,8 +97,27 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
               ),
             ),
         ]);
+    final actions = ref.watch(_isAdminProvider)
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () => _editRoom(context, snapshot),
+                icon: const Icon(Icons.edit),
+                tooltip: "Edit",
+              ),
+              if (!room.disableDeleting)
+                IconButton(
+                  onPressed: () => _deleteRoom(context, snapshot),
+                  icon: const Icon(Icons.delete),
+                  tooltip: "Delete",
+                ),
+            ],
+          )
+        : null;
 
     return Card(
+      elevation: 2,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.go(RoomListPage.path, extra: snapshot.reference),
@@ -105,21 +131,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
                   ListTile(
                     title: title,
                     titleTextStyle: theme.textTheme.titleLarge,
-                    trailing: ref.watch(_isAdminProvider)
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () => _editRoom(context, snapshot),
-                                icon: const Icon(Icons.edit),
-                              ),
-                              IconButton(
-                                onPressed: () => _deleteRoom(context, snapshot),
-                                icon: const Icon(Icons.delete),
-                              ),
-                            ],
-                          )
-                        : null,
+                    trailing: actions,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -164,6 +176,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
                   snapshot.reference;
             },
             icon: const Icon(Icons.add),
+            tooltip: "Add Staff",
           )
         else if (room.assignedStaffList.isEmpty)
           const Text("None", style: TextStyle(color: Colors.grey)),

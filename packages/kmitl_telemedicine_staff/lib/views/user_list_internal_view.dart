@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine/utils/date_time_extension.dart';
@@ -98,9 +99,6 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
             ),
           );
         }),
-        const Divider(
-          height: 1,
-        ),
         _buildFooter(),
       ],
     );
@@ -113,11 +111,13 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
+            tooltip: "Previous page",
             onPressed:
                 _canMoveToPrevPage(ref) ? () => _moveToPrevPage(ref) : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_forward),
+            tooltip: "Next page",
             onPressed:
                 _canMoveToNextPage(ref) ? () => _moveToNextPage(ref) : null,
           ),
@@ -171,6 +171,14 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
         fontWeight: FontWeight.bold,
       ),
       headingRowHeight: 40,
+      sortColumnIndex: sortColumnIndex,
+      sortAscending: sortAscending,
+      border: TableBorder(
+        verticalInside: BorderSide(color: Colors.grey.shade100),
+        horizontalInside: BorderSide(color: Colors.grey.shade300),
+        bottom: BorderSide(color: Colors.grey.shade300),
+      ),
+      columnSpacing: 10,
       columns: column2fieldMap.keys
           .map(
             (columnName) => DataColumn(
@@ -191,14 +199,28 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
             ),
           )
           .toList(),
-      sortColumnIndex: sortColumnIndex,
-      sortAscending: sortAscending,
       rows: snapshot.map(
         (snapshot) {
           final data = snapshot.data()!;
           return DataRow(
             cells: [
-              DataCell(Text(snapshot.id)),
+              DataCell(
+                Material(
+                  type: MaterialType.transparency,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(snapshot.id),
+                      IconButton(
+                        onPressed: () => _copyTextToClipboard(snapshot.id),
+                        icon: const Icon(Icons.copy),
+                        splashRadius: 20,
+                        tooltip: "Copy to Clipboard",
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               DataCell(Text(data.role.name)),
               DataCell(Text(data.getDisplayName())),
               DataCell(Text(data.HN ?? "null")),
@@ -253,6 +275,17 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
   void _moveToNextPage(WidgetRef ref) {
     ref.read(_currentPageQueryProvider.notifier).state =
         _buildNextPageQuery(ref, updateCache: true);
+  }
+
+  Future<void> _copyTextToClipboard(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Copied!"),
+        ),
+      );
+    }
   }
 
   //--- Query ---//

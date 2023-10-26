@@ -13,6 +13,7 @@ class WaitingRoom with _$WaitingRoom {
     required String name,
     required String description,
     @Default([]) List<AssignedStaff> assignedStaffList,
+    @Default(false) bool disableDeleting,
     @DateTimeConverter() required DateTime? updatedAt,
   }) = _WaitingRoom;
 

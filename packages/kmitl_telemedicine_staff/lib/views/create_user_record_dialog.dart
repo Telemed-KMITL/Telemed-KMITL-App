@@ -17,7 +17,7 @@ class CreateUserRecordDialog extends ConsumerStatefulWidget {
 
 class _CreateUserRecordDialogState
     extends ConsumerState<CreateUserRecordDialog> {
-  bool _isExistingUser = true;
+  bool _isExistingUser = false;
   bool _isExistingUserHintUid = false;
   String _existingUserHint = ""; // UserID or Email
   String _newUserEmail = "";
@@ -56,14 +56,14 @@ class _CreateUserRecordDialogState
       width: 450,
       child: Column(
         children: [
-          // [ Existing User | New User ]
+          // [ New User | Existing User ]
           ToggleButtons(
             isSelected: [
-              _isExistingUser,
               !_isExistingUser,
+              _isExistingUser,
             ],
             onPressed: (index) => setState(() {
-              _isExistingUser = index == 0;
+              _isExistingUser = index == 1;
               _resetUserFieldValues();
             }),
             constraints: const BoxConstraints(
@@ -71,8 +71,8 @@ class _CreateUserRecordDialogState
               minHeight: 40.0,
             ),
             children: const [
-              Text("Existing User"),
               Text("New User"),
+              Text("Existing User"),
             ],
           ),
           const SizedBox(height: 8),

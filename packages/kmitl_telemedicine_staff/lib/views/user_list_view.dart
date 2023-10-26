@@ -211,45 +211,48 @@ class UserListView extends ConsumerStatefulWidget {
 }
 
 class _UserListViewState extends ConsumerState<UserListView> {
-  final StateProvider<List<UserSearchFilter>> _searchFilterProvider =
-      StateProvider(
-    (ref) => [],
-  );
+  /// This provider is used to trigger the internal view to refresh
+  /// [_refresh] will update the value of this provider
+  late final StateProvider<List<UserSearchFilter>> _searchFilterProvider;
 
   final _addFilterLayerLink = LayerLink();
   final OverlayPortalController _addFilterPopupController =
       OverlayPortalController();
 
   UserSearchFilter? _sortFilter;
-  final List<UserSearchFilter> _searchFilters = [];
+  final List<UserSearchFilter> _searchFilters = [
+    UserSearchFilter(
+      "status",
+      UserFilterCondition.isEqualTo,
+      UserStatus.active,
+    ),
+  ];
+
+  @override
+  void initState() {
+    _searchFilterProvider = StateProvider(
+      (ref) => [..._searchFilters],
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
+      type: MaterialType.card,
+      color: Colors.grey.shade100,
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        borderRadius: const BorderRadius.all(
-          Radius.circular(10),
-        ),
+      elevation: 4.0,
+      borderRadius: const BorderRadius.all(
+        Radius.circular(10),
       ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(),
-            _buildInternalView(),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(),
+          _buildInternalView(),
+        ],
       ),
     );
   }
@@ -280,6 +283,7 @@ class _UserListViewState extends ConsumerState<UserListView> {
               child: IconButton(
                 icon: const Icon(Icons.filter_alt),
                 onPressed: () => _addFilterPopupController.toggle(),
+                tooltip: "Add Filter",
               ),
             ),
           ),
@@ -297,6 +301,7 @@ class _UserListViewState extends ConsumerState<UserListView> {
             ),
           IconButton(
             onPressed: _refresh,
+            tooltip: "Refresh",
             icon: const Icon(Icons.refresh),
           ),
         ],

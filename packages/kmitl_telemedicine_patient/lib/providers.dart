@@ -55,7 +55,7 @@ final kmitlTelemedServerProvider = FutureProvider((ref) async {
       BaseOptions(
         baseUrl: "https://blockchain.telemed.kmitl.ac.th/api",
         connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 10),
         followRedirects: true,
       ),
     ),

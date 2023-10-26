@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kmitl_telemedicine_staff/views/page_drawer.dart';
 import 'package:kmitl_telemedicine_staff/views/user_list_view.dart';
 
 class UserManagementPage extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: PageDrawer(),
       appBar: AppBar(
         title: const Text("Users"),
         centerTitle: true,

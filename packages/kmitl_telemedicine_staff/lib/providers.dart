@@ -46,7 +46,7 @@ final waitingUserListProvider = StreamProvider.autoDispose.family(
       KmitlTelemedicineDb.getSortedWaitingUsers(roomRef).snapshots(),
 );
 
-final currentUserProvider = StreamProvider.autoDispose((ref) {
+final currentUserProvider = StreamProvider((ref) {
   final firebaseUser = ref.watch(firebaseUserProvider);
   final firebaseUid = firebaseUser.valueOrNull?.uid;
   if (firebaseUid == null) {

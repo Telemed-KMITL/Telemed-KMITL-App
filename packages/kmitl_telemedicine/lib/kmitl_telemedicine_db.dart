@@ -72,7 +72,8 @@ class KmitlTelemedicineDb {
       ...waitingRoom.toJson(),
       ..._currentTimestamp,
     };
-    await pureRoomRef.update(json);
+    json.remove("assignedStaffList");
+    await pureRoomRef.set(json, SetOptions(merge: true));
   }
 
   static Future<void> assignStaffToWaitingRoom(

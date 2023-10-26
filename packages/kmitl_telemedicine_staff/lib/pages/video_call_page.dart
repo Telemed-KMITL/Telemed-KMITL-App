@@ -90,9 +90,13 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
                     key: _videoCallKey,
                     userName: ref
                         .read(currentUserProvider)
-                        .value!
-                        .data()!
-                        .getDisplayName(),
+                        .valueOrNull
+                        ?.data()
+                        ?.getDisplayName(),
+                    jwt: ref
+                        .read(firebaseTokenProvider(false))
+                        .valueOrNull
+                        ?.token,
                     readyToClose: _videoConferenceReadyToClose,
                     videoConferenceJoined: _onVideoConferenceStarted,
                     videoConferenceLeft: _onVideoConferenceEnded,

@@ -25,7 +25,7 @@ class _JitsiMeetOptions {
     html.Node parentNode,
 
     // The JWT token.
-    String jwt,
+    String? jwt,
 
     // The JS object that contains information about the participant starting or joining the meeting (e.g., email).
     _JitsiMeetUserInfo userInfo,
@@ -56,6 +56,7 @@ class VideoCallView extends StatefulWidget {
     this.roomName, {
     Key? key,
     this.userName,
+    this.jwt,
     this.onInitialized,
     this.readyToClose,
     this.videoConferenceJoined,
@@ -64,6 +65,7 @@ class VideoCallView extends StatefulWidget {
 
   final String roomName;
   final String? userName;
+  final String? jwt;
   final VoidCallback? onInitialized;
   final VoidCallback? readyToClose;
   final VoidCallback? videoConferenceJoined;
@@ -139,16 +141,24 @@ class VideoCallViewState extends State<VideoCallView> {
     final config = _builldJitsiMeetOptions(_JitsiMeetOptions(
       roomName: widget.roomName,
       parentNode: div,
+      jwt: widget.jwt,
       userInfo: _JitsiMeetUserInfo(displayName: widget.userName),
     ));
     const domain = "blockchain.telemed.kmitl.ac.th";
 
     _api = _JitsiMeetExternalAPI(domain, config)
-      ..addListener("readyToClose", allowInterop(_readyToCloseCallback))
       ..addListener(
-          "videoConferenceJoined", allowInterop(_videoConferenceJoinedCallback))
+        "readyToClose",
+        allowInterop(_readyToCloseCallback),
+      )
       ..addListener(
-          "videoConferenceLeft", allowInterop(_videoConferenceLeftCallback));
+        "videoConferenceJoined",
+        allowInterop(_videoConferenceJoinedCallback),
+      )
+      ..addListener(
+        "videoConferenceLeft",
+        allowInterop(_videoConferenceLeftCallback),
+      );
 
     widget.onInitialized?.call();
   }
