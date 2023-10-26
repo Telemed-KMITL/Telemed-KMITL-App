@@ -51,7 +51,11 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: waitingUserList.when(
-        data: (data) => _buildUserListView(data),
+        data: (data) => Column(
+          children: [
+            _buildUserListView(data),
+          ],
+        ),
         error: (error, stackTrace) => Center(
           child: Text(error.toString()),
         ),
@@ -65,96 +69,101 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
   Widget _buildUserListView(
     QuerySnapshot<WaitingUser>? data,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          _buildUserListTable(data),
-          if (data == null || data.docs.isEmpty)
-            const Expanded(
-              child: Center(
-                child: Text("Waiting room is empty or doesn't exist"),
+    return (data == null || data.docs.isEmpty)
+        ? Column(
+            children: [
+              _buildUserListTable(data),
+              const Expanded(
+                child: Center(
+                  child: Text("Waiting room is empty or doesn't exist"),
+                ),
               ),
-            )
-        ],
-      ),
-    );
+            ],
+          )
+        : Expanded(
+            child: SingleChildScrollView(
+              child: _buildUserListTable(data),
+            ),
+          );
   }
 
-  Table _buildUserListTable(
+  Widget _buildUserListTable(
     QuerySnapshot<WaitingUser>? data,
   ) {
     final headerStyle = Theme.of(context).textTheme.titleLarge;
 
-    return Table(
-      children: [
-        // Header
-        TableRow(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Theme.of(context).dividerColor),
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Table(
+        children: [
+          // Header
+          TableRow(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
+            children: [
+              const Icon(Icons.numbers),
+              Text("Name", style: headerStyle),
+              Text("Update", style: headerStyle),
+              Text("Status", style: headerStyle),
+              Text("Actions", style: headerStyle),
+            ]
+                .map((w) => TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: w,
+                      ),
+                    ))
+                .toList(),
           ),
-          children: [
-            const Icon(Icons.numbers),
-            Text("Name", style: headerStyle),
-            Text("Update", style: headerStyle),
-            Text("Status", style: headerStyle),
-            Text("Actions", style: headerStyle),
-          ]
-              .map((w) => TableCell(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: w,
-                    ),
-                  ))
-              .toList(),
-        ),
 
-        // Contents
-        if (data != null && data.docs.isNotEmpty) ..._buildTableRows(data.docs),
-      ],
-      columnWidths: const {
-        // Queue Number
-        0: FixedColumnWidth(40),
+          // Contents
+          if (data != null && data.docs.isNotEmpty)
+            ..._buildTableRows(data.docs),
+        ],
+        columnWidths: const {
+          // Queue Number
+          0: FixedColumnWidth(40),
 
-        // Name
-        1: FlexColumnWidth(),
+          // Name
+          1: FlexColumnWidth(),
 
-        // Date
-        2: FixedColumnWidth(120),
+          // Date
+          2: FixedColumnWidth(120),
 
-        // Status
-        3: FixedColumnWidth(120),
+          // Status
+          3: FixedColumnWidth(120),
 
-        // Actions
-        4: MaxColumnWidth(
-          IntrinsicColumnWidth(),
-          FixedColumnWidth(100),
-        ),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      textBaseline: TextBaseline.ideographic,
+          // Actions
+          4: MaxColumnWidth(
+            IntrinsicColumnWidth(),
+            FixedColumnWidth(100),
+          ),
+        },
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        textBaseline: TextBaseline.ideographic,
+      ),
     );
   }
 
   Iterable<TableRow> _buildTableRows(
     List<QueryDocumentSnapshot<WaitingUser>> source,
-  ) {
+  ) sync* {
     final textStyle = Theme.of(context).textTheme.labelLarge;
     final usernameStyle = Theme.of(context).textTheme.titleMedium;
 
-    int i = 0;
-    return source.map((document) {
-      i++;
+    for (final (i, snapshot) in source.indexed) {
+      final waitingUser = snapshot.data();
+      final isFinished = waitingUser.status == WaitingUserStatus.finished;
 
-      final waitingUser = document.data();
-      return TableRow(children: [
+      yield TableRow(children: [
         // Queue Number
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.baseline,
           child: Text(
-            i.toString(),
+            (i + 1).toString(),
             textAlign: TextAlign.center,
             style: textStyle,
           ),
@@ -192,30 +201,42 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
           verticalAlignment: TableCellVerticalAlignment.baseline,
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Row(children: [
-              _buildCallButton(
-                () =>
-                    context.push(VideoCallPage.path, extra: document.reference),
-              ),
-              const SizedBox(width: 4),
-              _buildTransferButton(
-                (room) => KmitlTelemedicineDb.transferWaitingUser(
-                    document.reference, room),
-              ),
-            ]),
+            child: Row(
+              children: [
+                _buildCallButton(
+                  isFinished
+                      ? null
+                      : () => context.push(
+                            VideoCallPage.path,
+                            extra: snapshot.reference,
+                          ),
+                ),
+                const SizedBox(width: 4),
+                _buildTransferButton(
+                  isFinished
+                      ? null
+                      : (room) => KmitlTelemedicineDb.transferWaitingUser(
+                            snapshot.reference,
+                            room,
+                          ),
+                ),
+              ],
+            ),
           ),
         ),
       ]);
-    });
+    }
   }
 
   static Widget _buildCallButton(void Function()? onPressed) => ElevatedButton(
         onPressed: onPressed,
-        child: const Row(children: [
-          Text("Call"),
-          SizedBox(width: 4),
-          Icon(Icons.call),
-        ]),
+        child: const Row(
+          children: [
+            Text("Call"),
+            SizedBox(width: 4),
+            Icon(Icons.call),
+          ],
+        ),
       );
 
   Widget _buildTransferButton(
