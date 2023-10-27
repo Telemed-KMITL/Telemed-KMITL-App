@@ -33,7 +33,17 @@ class RegistrationPage extends ConsumerStatefulWidget {
 class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   User? _user;
-  bool _isSending = false;
+
+  final StateProvider<bool> _isSendingProvider = StateProvider((_) => false);
+  late final Provider<bool> _canSubmitProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _canSubmitProvider = Provider((ref) =>
+        !ref.watch(_isSendingProvider) &&
+        (_formKey.currentState?.isDirty ?? false));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +89,18 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   Widget _buildForm() {
     return FormBuilder(
       key: _formKey,
-      onChanged: () => setState(() {}),
+      onChanged: () => ref.invalidate(_canSubmitProvider),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text("User Registration",
+                  style: Theme.of(context).textTheme.titleLarge),
+            ),
             ..._buildFormItems().map(
               (w) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
@@ -95,12 +111,11 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
-                textStyle: const TextStyle(fontSize: 20),
+                textStyle: const TextStyle(fontSize: 16),
               ),
-              onPressed:
-                  !_isSending && (_formKey.currentState?.isDirty ?? false)
-                      ? () => _onSubmit(_formKey.currentState!)
-                      : null,
+              onPressed: ref.watch(_canSubmitProvider)
+                  ? () => _onSubmit(_formKey.currentState!)
+                  : null,
               child: const Text("Register"),
             ),
           ],
@@ -117,6 +132,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         decoration: const InputDecoration(labelText: "First name"),
         keyboardType: TextInputType.name,
         validator: FormBuilderValidators.required(),
+        textInputAction: TextInputAction.next,
       ),
       FormBuilderTextField(
         name: "lastName",
@@ -124,6 +140,12 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         decoration: const InputDecoration(labelText: "Last name"),
         keyboardType: TextInputType.name,
         validator: FormBuilderValidators.required(),
+        textInputAction: TextInputAction.send,
+        onSubmitted: (_) {
+          if (ref.read(_canSubmitProvider)) {
+            _onSubmit(_formKey.currentState!);
+          }
+        },
       ),
     ];
   }
@@ -135,7 +157,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     }
 
     // Disable UI
-    setState(() => _isSending = true);
+    ref.read(_isSendingProvider.notifier).state = true;
 
     final server = await ref.read(kmitlTelemedServerProvider.future);
 
@@ -156,7 +178,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       return;
     } finally {
       // Enable UI
-      setState(() => _isSending = false);
+      ref.read(_isSendingProvider.notifier).state = false;
     }
 
     if (context.mounted) {

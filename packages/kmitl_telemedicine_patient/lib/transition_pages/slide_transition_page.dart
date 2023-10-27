@@ -20,8 +20,12 @@ class SlideTransitionPage<T> extends CustomTransitionPage<T> {
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(animation),
+        end: const Offset(0, 0),
+      ).animate(
+        animation.drive(
+          CurveTween(curve: Curves.easeInOutCubic),
+        ),
+      ),
       child: child,
     );
   }
