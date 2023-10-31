@@ -1,5 +1,6 @@
 library kmitl_telemedicine;
 
+export 'theme/app_theme.dart';
 export 'kmitl_telemedicine_db.dart';
 export 'comment.dart';
 export 'user.dart';

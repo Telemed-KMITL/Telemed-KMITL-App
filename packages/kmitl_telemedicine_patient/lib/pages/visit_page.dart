@@ -6,11 +6,24 @@ import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
 import 'package:kmitl_telemedicine/visit.dart';
 import 'package:kmitl_telemedicine_patient/providers.dart';
 
+enum VisitPageStatus {
+  preparing,
+  waiting,
+  calling,
+  finished,
+  unknown,
+}
+
 class VisitPage extends ConsumerStatefulWidget {
-  const VisitPage(this.visitId, {super.key});
+  const VisitPage(
+    this.visitId, {
+    super.key,
+    this.statusOverride,
+  });
 
   static const String path = "/visit/:visitId";
   final String visitId;
+  final VisitPageStatus? statusOverride;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _VisitPageState();
@@ -42,6 +55,15 @@ class _VisitPageState extends ConsumerState<VisitPage> {
   late ProviderSubscription<AsyncValue<DocumentSnapshot<Visit>?>>
       _visitSubscription;
 
+  VisitPageStatus get status =>
+      widget.statusOverride ??
+      switch (_visit) {
+        Visit(isFinished: true) => VisitPageStatus.finished,
+        Visit(status: VisitStatus.waiting) => VisitPageStatus.waiting,
+        Visit(status: VisitStatus.calling) => VisitPageStatus.calling,
+        _ => VisitPageStatus.unknown,
+      };
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +72,8 @@ class _VisitPageState extends ConsumerState<VisitPage> {
       _onVisitStatusChaged,
     );
   }
+
+  //--- UI ---//
 
   @override
   Widget build(BuildContext context) {
@@ -68,45 +92,28 @@ class _VisitPageState extends ConsumerState<VisitPage> {
     final headerStyle = theme.textTheme.headlineLarge;
     final bodyStyle = theme.textTheme.titleMedium;
 
-    (Image?, String, String) status = switch (_visit) {
-      Visit(isFinished: true) => (
-          null,
-          "Finished",
-          "Your visit is finished",
-        ),
-      Visit(status: VisitStatus.waiting) => (
-          Image.asset("assets/waiting-room.png"),
-          "Waiting",
-          "Please wait until our staff calls you",
-        ),
-      Visit(status: VisitStatus.calling) => (
-          Image.asset("assets/phone-call.png"),
-          "Ready to Call",
-          "Please press the button below to start the call",
-        ),
-      _ => (null, "", ""),
-    };
+    final display = _getVisitStatusDisplay(status);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (status.$1 != null)
+        if (display.image != null)
           SizedBox(
             width: 200,
-            child: status.$1,
+            child: Image.asset(display.image!),
           ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 40),
           child: Column(
             children: [
-              Text(status.$2, style: headerStyle),
+              Text(display.title, style: headerStyle),
               const SizedBox(height: 10),
-              Text(status.$3, style: bodyStyle),
+              Text(display.description, style: bodyStyle),
             ],
           ),
         ),
-        if (_visit?.status == VisitStatus.calling)
+        if (status == VisitPageStatus.calling)
           ValueListenableBuilder(
             valueListenable: _isCalling,
             builder: (context, isCalling, _) => ElevatedButton(
@@ -126,9 +133,58 @@ class _VisitPageState extends ConsumerState<VisitPage> {
               ),
             ),
           ),
+        if (status == VisitPageStatus.finished)
+          ElevatedButton(
+            onPressed: _requestClose,
+            style: const ButtonStyle(
+              padding: MaterialStatePropertyAll(
+                EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 20,
+                ),
+              ),
+            ),
+            child: const Text(
+              "Close",
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
       ],
     );
   }
+
+  static ({
+    String? image,
+    String title,
+    String description,
+  }) _getVisitStatusDisplay(
+    VisitPageStatus status,
+  ) =>
+      switch (status) {
+        VisitPageStatus.preparing => (
+            image: null,
+            title: "Preparing",
+            description: "",
+          ),
+        VisitPageStatus.waiting => (
+            image: "assets/waiting-room.png",
+            title: "Waiting",
+            description: "Please wait until our staff calls you",
+          ),
+        VisitPageStatus.calling => (
+            image: "assets/phone-call.png",
+            title: "Ready to Call",
+            description: "Please press the button below to start the call",
+          ),
+        VisitPageStatus.finished => (
+            image: null,
+            title: "Finished",
+            description: "Your visit is finished",
+          ),
+        _ => (image: null, title: "", description: ""),
+      };
+
+  //--- Utils ---//
 
   Future<void> _onVisitStatusChaged(
     AsyncValue<DocumentSnapshot<Visit>?>? prevValue,

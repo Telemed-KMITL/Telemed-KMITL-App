@@ -4,6 +4,7 @@ import "package:firebase_ui_auth/firebase_ui_auth.dart";
 import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:kmitl_telemedicine/kmitl_telemedicine.dart";
 import "package:kmitl_telemedicine_patient/router.dart";
 import "firebase_options.dart";
 
@@ -27,10 +28,12 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xfff0542c),
-          primary: const Color(0xfff0542c),
+        colorScheme: ColorScheme.light(
+          primary: kAppColors[0],
+          secondary: const Color(0xffae8881),
+          tertiary: kAppColors[1],
         ),
+        useMaterial3: true,
       ),
       routerConfig: ref.watch(routerProvider),
     );

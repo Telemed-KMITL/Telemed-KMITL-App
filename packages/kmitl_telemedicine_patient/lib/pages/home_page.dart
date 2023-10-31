@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'package:kmitl_telemedicine/theme/app_theme.dart';
 import 'package:kmitl_telemedicine_patient/providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -102,7 +104,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       children: [
         Container(
           decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 232, 133, 33),
+            gradient: kAppGradient,
             borderRadius: BorderRadiusDirectional.only(
               bottomStart: Radius.circular(16),
               bottomEnd: Radius.circular(16),
@@ -129,45 +131,32 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             _buildUneditableField(
               headerText: "Role",
-              label: Text(
-                user?.role.name ?? "",
-                style: theme.textTheme.labelLarge,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildUneditableField(
-              headerText: "Status",
-              label: Text(
-                user?.status.name ?? "",
-                style: theme.textTheme.labelLarge,
-              ),
+              text: user?.role.name ?? "",
+              copyable: true,
             ),
             const SizedBox(height: 14),
             _buildUneditableField(
               headerText: "HN",
-              label: Text(
-                user?.hn ?? "",
-                style: theme.textTheme.labelLarge,
-              ),
+              text: user?.hn ?? "",
+              copyable: true,
+            ),
+            const SizedBox(height: 14),
+            _buildUneditableField(
+              headerText: "Status",
+              text: user?.status.name ?? "",
             ),
             const Divider(height: 40),
             _buildUneditableField(
               headerText: "User ID",
-              label: Text(
-                firebaseUser?.uid ?? "",
-                style: theme.textTheme.labelLarge,
-              ),
+              text: firebaseUser?.uid ?? "",
+              copyable: true,
             ),
             const SizedBox(height: 14),
             _buildUneditableField(
               headerText: "Email",
-              label: Text(
-                firebaseUser == null
-                    ? ""
-                    : "${firebaseUser.email}" +
-                        (firebaseUser.emailVerified ? " (Verified)" : ""),
-                style: theme.textTheme.labelLarge,
-              ),
+              text: firebaseUser == null
+                  ? ""
+                  : "${firebaseUser.email}${firebaseUser.emailVerified ? " (Verified)" : ""}",
             ),
             const SizedBox(height: 30),
             TextButton.icon(
@@ -192,7 +181,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildUneditableField({required String headerText, Widget? label}) {
+  Widget _buildUneditableField({
+    required String headerText,
+    String? text,
+    bool copyable = false,
+  }) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,9 +199,38 @@ class _HomePageState extends ConsumerState<HomePage> {
             color: Colors.grey.shade300,
             borderRadius: BorderRadius.circular(10),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          padding: const EdgeInsets.only(left: 20, top: 4, bottom: 4),
           alignment: Alignment.centerLeft,
-          child: label,
+          child: text != null
+              ? Row(
+                  children: [
+                    Flexible(
+                      fit: FlexFit.tight,
+                      child: Text(
+                        text,
+                        overflow: TextOverflow.fade,
+                        style: theme.textTheme.labelLarge,
+                      ),
+                    ),
+                    if (copyable)
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: text));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Copied!")),
+                          );
+                        },
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.copy),
+                      ),
+                  ],
+                )
+              : Text(
+                  "None",
+                  style: theme.textTheme.labelLarge
+                          ?.merge(TextStyle(color: Colors.grey.shade500)) ??
+                      TextStyle(color: Colors.grey.shade500),
+                ),
         ),
       ],
     );

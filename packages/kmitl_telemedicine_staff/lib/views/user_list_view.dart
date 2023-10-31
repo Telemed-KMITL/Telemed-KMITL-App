@@ -22,58 +22,47 @@ class _AddFilterPopupState extends State<_AddFilterPopup> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 400,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        borderRadius: const BorderRadius.all(
-          Radius.circular(5),
-        ),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text("Add Filter", style: Theme.of(context).textTheme.titleMedium),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildFieldSelector(),
-                const SizedBox(width: 10),
-                _buildConditionSelector(),
-                const SizedBox(width: 10),
-                Flexible(flex: 1, child: _buildValueInput()),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: _selectedFieldName != null &&
-                        _selectedCondition != null &&
-                        _selectedValue != null
-                    ? () => widget.onAdd?.call(UserSearchFilter(
-                          _selectedFieldName!,
-                          _selectedCondition!,
-                          _selectedValue,
-                        ))
-                    : null,
-                child: const Text("Add"),
+    return Card(
+      child: Container(
+        width: 400,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text("Add Filter", style: Theme.of(context).textTheme.titleMedium),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _buildFieldSelector(),
+                  const SizedBox(width: 10),
+                  _buildConditionSelector(),
+                  const SizedBox(width: 10),
+                  Flexible(flex: 1, child: _buildValueInput()),
+                ],
               ),
-            ],
-          )
-        ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: _selectedFieldName != null &&
+                          _selectedCondition != null &&
+                          _selectedValue != null
+                      ? () => widget.onAdd?.call(UserSearchFilter(
+                            _selectedFieldName!,
+                            _selectedCondition!,
+                            _selectedValue,
+                          ))
+                      : null,
+                  child: const Text("Add"),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -295,7 +284,7 @@ class _UserListViewState extends ConsumerState<UserListView> {
                   .valueOrNull
                   ?.claims?["role"] ==
               UserRole.admin.name)
-            ElevatedButton(
+            FilledButton(
               onPressed: _addUser,
               child: const Text("Add User"),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kmitl_telemedicine/kmitl_telemedicine.dart';
 import 'package:kmitl_telemedicine_patient/pages/auth/signin_page.dart';
 import 'package:kmitl_telemedicine_patient/pages/auth/signup_page.dart';
 
@@ -30,14 +31,28 @@ class WelcomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ElevatedButton(
-                    onPressed: () => context.go(SigninPage.path),
-                    child: const Text("Sign in"),
+                  Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: kAppGradient,
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: FilledButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.transparent),
+                      ),
+                      onPressed: () => context.go(SigninPage.path),
+                      child: const Text("Sign In"),
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => context.go(SignupPage.path),
-                    child: const Text("Sign up"),
+                  SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: () => context.go(SignupPage.path),
+                      child: const Text("Create Account"),
+                    ),
                   ),
                 ],
               ),

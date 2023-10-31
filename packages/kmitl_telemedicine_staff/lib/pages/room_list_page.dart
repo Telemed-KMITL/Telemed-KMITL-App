@@ -39,7 +39,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
     return Scaffold(
       drawer: PageDrawer(),
       appBar: AppBar(
-        title: const Text("TeleMed"),
+        title: const Text("Waiting Rooms"),
         centerTitle: true,
       ),
       body: waitingRoomList.when(

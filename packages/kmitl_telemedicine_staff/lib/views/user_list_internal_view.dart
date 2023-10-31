@@ -173,11 +173,7 @@ class _UserListInternalViewState extends ConsumerState<UserListInternalView> {
       headingRowHeight: 40,
       sortColumnIndex: sortColumnIndex,
       sortAscending: sortAscending,
-      border: TableBorder(
-        verticalInside: BorderSide(color: Colors.grey.shade100),
-        horizontalInside: BorderSide(color: Colors.grey.shade300),
-        bottom: BorderSide(color: Colors.grey.shade300),
-      ),
+      showBottomBorder: true,
       columnSpacing: 10,
       columns: column2fieldMap.keys
           .map(

@@ -12,7 +12,7 @@ final firebaseUserProvider = StreamProvider(
 
 final firebaseTokenProvider =
     FutureProvider.family((ref, bool forceRefresh) async {
-  final firebaseUser = ref.watch(firebaseUserProvider).valueOrNull;
+  final firebaseUser = await ref.watch(firebaseUserProvider.future);
   if (firebaseUser == null) {
     return null;
   } else {

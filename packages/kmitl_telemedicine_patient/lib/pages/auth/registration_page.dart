@@ -108,7 +108,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            FilledButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
                 textStyle: const TextStyle(fontSize: 16),
