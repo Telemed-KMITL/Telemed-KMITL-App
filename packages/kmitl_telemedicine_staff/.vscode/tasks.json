@@ -1,0 +1,61 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "flutter",
+            "command": "flutter",
+            "args": [
+                "build",
+                "web",
+                "--base-href",
+                "${input:flutter-web-base-href}"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "label": "Build"
+        },
+        {
+            "label": "Publish",
+            "command": "rsync",
+            "args": [
+                "-av",
+                "--delete",
+                "--chmod=F775,D775",
+                "${workspaceFolder}/build/web/",
+                "${input:rsync-address}:${input:rsync-target}"
+            ],
+            "dependsOn": [
+                "Build"
+            ],
+            "windows": {
+                "command": "wsl",
+                "args": [
+                    "bash",
+                    "-c",
+                    "rsync -av --delete --chmod=F775,D775 $(wslpath '${workspaceFolder}')/build/web/ ${input:rsync-address}:${input:rsync-target}"
+                ],
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "flutter-web-base-href",
+            "type": "promptString",
+            "default": "/app/",
+            "description": "Flutter Base Path (base-href should start and end with /)"
+        },
+        {
+            "id": "rsync-address",
+            "type": "promptString",
+            "default": "kmitl-telemed",
+            "description": "SSH Address (ex: user@127.0.0.1)"
+        },
+        {
+            "id": "rsync-target",
+            "type": "promptString",
+            "default": "/var/www/html/app",
+            "description": "Target path"
+        }
+    ]
+}
