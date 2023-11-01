@@ -51,11 +51,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: waitingUserList.when(
-        data: (data) => Column(
-          children: [
-            _buildUserListView(data),
-          ],
-        ),
+        data: (data) => _buildUserListView(data),
         error: (error, stackTrace) => Center(
           child: Text(error.toString()),
         ),
@@ -80,10 +76,14 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
               ),
             ],
           )
-        : Expanded(
-            child: SingleChildScrollView(
-              child: _buildUserListTable(data),
-            ),
+        : Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: _buildUserListTable(data),
+                ),
+              ),
+            ],
           );
   }
 

@@ -246,12 +246,13 @@ class KmitlTelemedicineDb {
     String comment,
     String? authorUid,
   ) async {
+    final userId = KmitlTelemedicineDb.getUserRefFromVisit(visitRef).id;
     final comments = getComments(visitRef);
     final commentRef = comments.doc();
     await _getPureReference(commentRef).set({
       "text": comment,
       "authorUid": authorUid,
-      "userId": authorUid,
+      "userId": userId,
       "visitId": visitRef.id,
       "createdAt": FieldValue.serverTimestamp(),
     });

@@ -260,7 +260,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
   // Comment
 
   Future<void> _sendComment() async {
-    String uid = ref.read(firebaseUserProvider).requireValue!.uid;
+    String authorUid = ref.read(firebaseUserProvider).requireValue!.uid;
 
     final commentText = _commentInput.text.trim();
     _commentInput.clear();
@@ -272,7 +272,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
     setState(() {
       _sendingComment = Comment(
         text: commentText,
-        authorUid: uid,
+        authorUid: authorUid,
         createdAt: DateTime.now(),
       );
     });
@@ -281,7 +281,7 @@ class _UserCommentViewState extends ConsumerState<UserCommentView> {
       await KmitlTelemedicineDb.addComment(
         visitRef!,
         commentText,
-        uid,
+        authorUid,
       );
     } on Exception {
       setState(() {
