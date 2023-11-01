@@ -63,6 +63,7 @@ class VideoCallView extends StatefulWidget {
     this.readyToClose,
     this.videoConferenceJoined,
     this.videoConferenceLeft,
+    this.backColor,
   }) : super(key: key);
 
   final String roomName;
@@ -72,6 +73,7 @@ class VideoCallView extends StatefulWidget {
   final VoidCallback? readyToClose;
   final VoidCallback? videoConferenceJoined;
   final VoidCallback? videoConferenceLeft;
+  final Color? backColor;
 
   @override
   VideoCallViewState createState() => VideoCallViewState();
@@ -101,7 +103,13 @@ class VideoCallViewState extends State<VideoCallView> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildHtmlView();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: widget.backColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: _buildHtmlView(),
+    );
   }
 
   @override

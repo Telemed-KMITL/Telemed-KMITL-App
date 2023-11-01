@@ -79,31 +79,28 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
         Expanded(
           child: Container(
             color: Colors.grey.shade800,
-            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Flexible(
-                  child: VideoCallView(
-                    waitingUser.jitsiRoomName,
-                    key: _videoCallKey,
-                    userName: ref
-                        .read(currentUserProvider)
-                        .valueOrNull
-                        ?.data()
-                        ?.getDisplayName(),
-                    jwt: ref
-                        .read(firebaseTokenProvider(false))
-                        .valueOrNull
-                        ?.token,
-                    readyToClose: _videoConferenceReadyToClose,
-                    videoConferenceJoined: _onVideoConferenceStarted,
-                    videoConferenceLeft: _onVideoConferenceEnded,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: _buildVideoCallView(waitingUser.jitsiRoomName),
                   ),
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 60,
+                Container(
+                  height: 70,
+                  padding: const EdgeInsets.only(bottom: 14),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black45,
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,7 +112,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
                       _buildEndVisitingButton(),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -125,6 +122,57 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
           visitId: waitingUser.visitId,
         ),
       ],
+    );
+  }
+
+  Widget _buildVideoCallView(String roomName) {
+    return FutureBuilder<VideoCallView>(
+      future: () async {
+        final currentUser =
+            (await ref.read(currentUserProvider.future))!.data()!;
+        final token =
+            (await ref.read(firebaseTokenProvider(false).future))?.token!;
+        return VideoCallView(
+          roomName,
+          key: _videoCallKey,
+          userName: currentUser.getDisplayName(),
+          jwt: token,
+          readyToClose: _videoConferenceReadyToClose,
+          videoConferenceJoined: _onVideoConferenceStarted,
+          videoConferenceLeft: _onVideoConferenceEnded,
+          backColor: Colors.black26,
+        );
+      }(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return snapshot.requireData;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.black26,
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          child: snapshot.hasError
+              ? Center(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outline),
+                          const SizedBox(height: 10),
+                          Text(snapshot.error?.toString() ??
+                              "Unknown Error Happend"),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
     );
   }
 
