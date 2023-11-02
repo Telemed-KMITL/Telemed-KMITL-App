@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kmitl_telemedicine_staff/views/page_drawer.dart';
 import 'package:kmitl_telemedicine_staff/views/user_list_view.dart';
+import 'package:kmitl_telemedicine_staff/views/user_mini_info.dart';
 
 class UserManagementPage extends ConsumerStatefulWidget {
   const UserManagementPage({super.key});
@@ -26,6 +27,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
       appBar: AppBar(
         title: const Text("Users"),
         centerTitle: true,
+        actions: const [UserMiniInfo()],
       ),
       body: const SingleChildScrollView(
         scrollDirection: Axis.vertical,

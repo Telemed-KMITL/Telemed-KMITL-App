@@ -7,6 +7,7 @@ import 'package:kmitl_telemedicine/utils/custom_filters.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
 import 'package:kmitl_telemedicine_staff/views/create_waiting_room_dialog.dart';
 import 'package:kmitl_telemedicine_staff/views/page_drawer.dart';
+import 'package:kmitl_telemedicine_staff/views/user_mini_info.dart';
 
 class RoomListPage extends ConsumerStatefulWidget {
   const RoomListPage({super.key});
@@ -41,6 +42,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
       appBar: AppBar(
         title: const Text("Waiting Rooms"),
         centerTitle: true,
+        actions: const [UserMiniInfo()],
       ),
       body: waitingRoomList.when(
         data: (data) => _buildList(data),

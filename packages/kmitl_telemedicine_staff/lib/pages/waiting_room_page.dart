@@ -7,6 +7,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:kmitl_telemedicine/utils/date_time_extension.dart';
 import 'package:kmitl_telemedicine_staff/pages/video_call_page.dart';
 import 'package:kmitl_telemedicine_staff/providers.dart';
+import 'package:kmitl_telemedicine_staff/views/user_mini_info.dart';
 
 class WaitingRoomPage extends ConsumerStatefulWidget {
   const WaitingRoomPage({super.key, required this.roomRef});
@@ -19,6 +20,7 @@ class WaitingRoomPage extends ConsumerStatefulWidget {
 }
 
 class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
+  late String _currentUserId;
   final _showFinishedUserProvider = StateProvider((ref) => false);
   late final FutureProvider<DocumentSnapshot<WaitingRoom>> _waitingRoomProvider;
   late final StreamProvider<QuerySnapshot<WaitingUser>> _waitingUsersProvider;
@@ -34,6 +36,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
               .where("status", isNotEqualTo: "finished");
       return query.snapshots();
     });
+    _currentUserId = ref.read(firebaseUserProvider).requireValue!.uid;
   }
 
   @override
@@ -52,7 +55,10 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
     AsyncValue<QuerySnapshot<WaitingUser>> waitingUserList,
   ) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: const [UserMiniInfo()],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -197,7 +203,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
 
     for (final (i, snapshot) in source.indexed) {
       final waitingUser = snapshot.data();
-      final isFinished = waitingUser.status == WaitingUserStatus.finished;
+      final disableActions = waitingUser.status == WaitingUserStatus.finished;
 
       yield TableRow(children: [
         // Queue Number
@@ -245,7 +251,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
             child: Row(
               children: [
                 _buildCallButton(
-                  isFinished
+                  disableActions
                       ? null
                       : () => context.push(
                             VideoCallPage.path,
@@ -254,7 +260,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
                 ),
                 const SizedBox(width: 4),
                 _buildTransferButton(
-                  isFinished
+                  disableActions
                       ? null
                       : (room) => KmitlTelemedicineDb.transferWaitingUser(
                             snapshot.reference,
