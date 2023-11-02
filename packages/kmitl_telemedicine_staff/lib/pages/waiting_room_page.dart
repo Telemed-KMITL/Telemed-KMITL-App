@@ -19,72 +19,104 @@ class WaitingRoomPage extends ConsumerStatefulWidget {
 }
 
 class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
+  final _showFinishedUserProvider = StateProvider((ref) => false);
+  late final FutureProvider<DocumentSnapshot<WaitingRoom>> _waitingRoomProvider;
+  late final StreamProvider<QuerySnapshot<WaitingUser>> _waitingUsersProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _waitingRoomProvider = FutureProvider((ref) => widget.roomRef.get());
+    _waitingUsersProvider = StreamProvider((ref) {
+      final query = ref.watch(_showFinishedUserProvider)
+          ? KmitlTelemedicineDb.getSortedWaitingUsers(widget.roomRef)
+          : KmitlTelemedicineDb.getWaitingUsers(widget.roomRef)
+              .where("status", isNotEqualTo: "finished");
+      return query.snapshots();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final waitingRoom = ref.watch(waitingRoomProvider(widget.roomRef));
-
-    return waitingRoom.when(
-      data: (snapshot) {
-        return _buildScaffold(
-          snapshot.exists ? snapshot.data()!.name : snapshot.id,
-          snapshot.exists
-              ? ref.watch(waitingUserListProvider(snapshot.reference))
-              : const AsyncData(null),
-        );
-      },
-      loading: () => _buildScaffold(
-        widget.roomRef.id,
-        const AsyncLoading(),
-      ),
-      error: (error, stackTrace) => Center(
-        child: Text(error.toString()),
-      ),
-      skipLoadingOnRefresh: true,
-      skipLoadingOnReload: true,
+    return _buildScaffold(
+      ref
+              .watch(_waitingRoomProvider)
+              .mapOrNull(data: (data) => data.value.data()?.name) ??
+          widget.roomRef.id,
+      ref.watch(_waitingUsersProvider),
     );
   }
 
   Scaffold _buildScaffold(
     String title,
-    AsyncValue<QuerySnapshot<WaitingUser>?> waitingUserList,
+    AsyncValue<QuerySnapshot<WaitingUser>> waitingUserList,
   ) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: waitingUserList.when(
-        data: (data) => _buildUserListView(data),
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
-        ),
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildOptionBar(),
+          Expanded(
+            child: waitingUserList.when(
+              data: (data) => _buildUserListView(data),
+              error: (error, stackTrace) => Center(
+                child: Text(error.toString()),
+              ),
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildUserListView(
-    QuerySnapshot<WaitingUser>? data,
+    QuerySnapshot<WaitingUser> data,
   ) {
-    return (data == null || data.docs.isEmpty)
-        ? Column(
-            children: [
-              _buildUserListTable(data),
-              const Expanded(
-                child: Center(
-                  child: Text("Waiting room is empty or doesn't exist"),
-                ),
-              ),
-            ],
-          )
-        : Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: _buildUserListTable(data),
-                ),
-              ),
-            ],
-          );
+    if (data.docs.isEmpty) {
+      return Column(
+        children: [
+          _buildUserListTable(data),
+          const Flexible(
+            child: Center(
+              child: Text("Waiting room is empty or doesn't exist"),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return SingleChildScrollView(
+        child: _buildUserListTable(data),
+      );
+    }
+  }
+
+  Widget _buildOptionBar() {
+    return Material(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 2,
+        ),
+        child: Row(
+          children: [
+            CheckboxMenuButton(
+              value: ref.watch(_showFinishedUserProvider),
+              onChanged: (bool? value) {
+                if (value != null) {
+                  ref.read(_showFinishedUserProvider.notifier).state = value;
+                }
+              },
+              child: const Text("Show Finished User"),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildUserListTable(
@@ -153,6 +185,15 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
   ) sync* {
     final textStyle = Theme.of(context).textTheme.labelLarge;
     final usernameStyle = Theme.of(context).textTheme.titleMedium;
+
+    final List<QueryDocumentSnapshot<WaitingUser>> sortedList = [...source];
+    sortedList.sort((a, b) {
+      final aTime =
+          a.data().updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime =
+          a.data().updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return aTime.compareTo(bTime);
+    });
 
     for (final (i, snapshot) in source.indexed) {
       final waitingUser = snapshot.data();
