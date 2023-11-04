@@ -6,17 +6,12 @@ import 'date_time_converter.dart';
 part 'visit.freezed.dart';
 part 'visit.g.dart';
 
-enum VisitStatus {
-  waiting,
-  calling,
-}
-
 @freezed
 class Visit with _$Visit {
   const factory Visit({
-    required VisitStatus status,
     required bool isFinished,
     required String jitsiRoomName,
+    @Default([]) List<String> callerIds,
     @DateTimeConverter() required DateTime createdAt,
   }) = _Visit;
 

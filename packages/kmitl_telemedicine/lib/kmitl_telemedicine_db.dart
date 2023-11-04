@@ -182,12 +182,22 @@ class KmitlTelemedicineDb {
         waitingUser.visitId,
       );
 
-  static Future<void> setVisitStatus(
+  static Future<void> addCallerToVisit(
     DocumentReference<Visit> visitRef,
-    VisitStatus status,
+    String userId,
   ) async {
     await _getPureReference(visitRef).update({
-      "status": status.name,
+      "callerIds": FieldValue.arrayUnion([userId]),
+      ..._currentTimestamp,
+    });
+  }
+
+  static Future<void> removeCallerToVisit(
+    DocumentReference<Visit> visitRef,
+    String userId,
+  ) async {
+    await _getPureReference(visitRef).update({
+      "callerIds": FieldValue.arrayUnion([userId]),
       ..._currentTimestamp,
     });
   }

@@ -34,6 +34,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   WaitingUser? _waitingUser;
   _ExitReason _exitReason = _ExitReason.undefined;
   bool _finalized = false;
+  late final String _firebaseUserId;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
       widget.waitingUserRef,
       WaitingUserStatus.onCall,
     );
+    _firebaseUserId = ref.read(firebaseUserProvider).value!.uid;
   }
 
   @override
@@ -258,16 +260,16 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   }
 
   Future<void> _onVideoConferenceStarted() async {
-    await KmitlTelemedicineDb.setVisitStatus(
+    await KmitlTelemedicineDb.addCallerToVisit(
       KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
-      VisitStatus.calling,
+      _firebaseUserId,
     );
   }
 
   Future<void> _onVideoConferenceEnded() async {
-    await KmitlTelemedicineDb.setVisitStatus(
+    await KmitlTelemedicineDb.removeCallerToVisit(
       KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
-      VisitStatus.waiting,
+      _firebaseUserId,
     );
   }
 

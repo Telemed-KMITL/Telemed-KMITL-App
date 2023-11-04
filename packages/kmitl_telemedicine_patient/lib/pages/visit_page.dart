@@ -59,8 +59,8 @@ class _VisitPageState extends ConsumerState<VisitPage> {
       widget.statusOverride ??
       switch (_visit) {
         Visit(isFinished: true) => VisitPageStatus.finished,
-        Visit(status: VisitStatus.waiting) => VisitPageStatus.waiting,
-        Visit(status: VisitStatus.calling) => VisitPageStatus.calling,
+        Visit(callerIds: final list) =>
+          list.isEmpty ? VisitPageStatus.waiting : VisitPageStatus.calling,
         _ => VisitPageStatus.unknown,
       };
 
@@ -204,19 +204,18 @@ class _VisitPageState extends ConsumerState<VisitPage> {
       await _requestClose();
     }
 
-    if (prevVisit?.status != visit.status) {
-      switch (visit.status) {
-        case VisitStatus.waiting:
-          if (_isCalling.value) {
-            await _jitsiMeet.hangUp();
-          }
-          break;
-        case VisitStatus.calling:
-          if (!_isCalling.value) {
-            await _joinMeeting(visit.jitsiRoomName);
-          }
-          break;
-      }
+    switch ((prevVisit?.callerIds.isEmpty ?? true, visit.callerIds.isEmpty)) {
+      case (false, true):
+        if (_isCalling.value) {
+          await _jitsiMeet.hangUp();
+        }
+        break;
+      case (true, false):
+        if (!_isCalling.value) {
+          await _joinMeeting(visit.jitsiRoomName);
+        }
+        break;
+      default:
     }
 
     setState(() => _visit = visit);
