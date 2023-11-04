@@ -83,6 +83,7 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
     final uid = ref.watch(firebaseUserProvider).valueOrNull?.uid;
     bool assignedToMe =
         room.assignedStaffList.any((staff) => staff.userId == uid);
+    bool isAllowedToEnter = assignedToMe || ref.watch(_isAdminProvider);
 
     final title = Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -122,7 +123,9 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.go(RoomListPage.path, extra: snapshot.reference),
+        onTap: isAllowedToEnter
+            ? () => context.go(RoomListPage.path, extra: snapshot.reference)
+            : null,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -146,10 +149,11 @@ class _RoomListPageState extends ConsumerState<RoomListPage> {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Icon(Icons.arrow_forward_ios),
-            ),
+            if (isAllowedToEnter)
+              const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Icon(Icons.arrow_forward_ios),
+              ),
           ],
         ),
       ),
