@@ -192,12 +192,12 @@ class KmitlTelemedicineDb {
     });
   }
 
-  static Future<void> removeCallerToVisit(
+  static Future<void> removeCallerFromVisit(
     DocumentReference<Visit> visitRef,
     String userId,
   ) async {
     await _getPureReference(visitRef).update({
-      "callerIds": FieldValue.arrayUnion([userId]),
+      "callerIds": FieldValue.arrayRemove([userId]),
       ..._currentTimestamp,
     });
   }

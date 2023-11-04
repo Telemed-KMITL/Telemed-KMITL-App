@@ -267,7 +267,7 @@ class VideoCallPageState extends ConsumerState<VideoCallPage> {
   }
 
   Future<void> _onVideoConferenceEnded() async {
-    await KmitlTelemedicineDb.removeCallerToVisit(
+    await KmitlTelemedicineDb.removeCallerFromVisit(
       KmitlTelemedicineDb.getVisitRefFromWaitingUser(_waitingUser!),
       _firebaseUserId,
     );
